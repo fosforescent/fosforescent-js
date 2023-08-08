@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "npx jest"
+    "test": "npx jest",
+    "test:ci": "npx jest --ci --verbose --maxWorkers=2"
   },
   "author": "",
   "license": "ISC",
