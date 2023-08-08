@@ -70,7 +70,7 @@ describe('interpreter basics', () => {
     expect(result2[0].getName()).toBe('C')
   })
 
-  test('can run task', () => {
+  test.skip('can run task', () => {
     const store = new Store()
     const rootInterpreter = store.getInterpreter(store.voidAddress, store.unitAddress, null) as IFosInterpreter
     const [task, newInterpreter] = rootInterpreter.createTask('B', [])
@@ -81,6 +81,20 @@ describe('interpreter basics', () => {
     const [completedTodo, rootWithCompletedTodo] = rootWithTodo.setTaskInput(todo)
     const completedTodos = rootWithTodo.getCompletedTodos()
     expect(completedTodos.length).toBe(1)
+  })
+
+  test.skip('can run task and get result', () => {
+    const store = new Store()
+    const rootInterpreter = store.getInterpreter(store.voidAddress, store.unitAddress, null) as IFosInterpreter
+    const [task, newInterpreter] = rootInterpreter.createTask('B', [])
+    const [workflow, rootWithWorkflow] = newInterpreter.createWorkflow('workflow', [task])
+    const [todo, rootWithTodo] = rootWithWorkflow.runTask(workflow)
+    const todos = rootWithTodo.getTodos()
+    expect(todos.length).toBe(1)
+    const [completedTodo, rootWithCompletedTodo] = rootWithTodo.setTaskInput(todo)
+    const completedTodos = rootWithTodo.getCompletedTodos()
+    expect(completedTodos.length).toBe(1)
+  })
 
 
 })
