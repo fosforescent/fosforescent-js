@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "npx jest",
-    "test": "npx jest -- --ci"
+    "test:ci": "npx jest -- --ci"
   },
   "author": "",
   "license": "ISC",
