@@ -1,0 +1,44 @@
+name: Open PR on Issue Creation
+
+# on:
+#   issues:
+#     types: [opened]
+on: workflow_dispatch
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 19.6.0
+    - run: npm ci
+
+    - name: Show event info
+      run: echo "${{ toJson(github) }}"
+
+    - name: Create branch for the PR
+      run: git checkout -b pr-issue-${{ github.event.issue.number }}
+
+    - name: Make changes to the branch
+      run: node cli/index.js gen-changes "changes to ${{ github.event.issue.number }}"
+
+    - name: Set Git Author Name
+      run: git config user.name "test test"
+
+    - name: Set Git Author Email
+      run: git config user.email "test@test.test"
+
+    - name: Commit changes to the branch
+      run: git add -A && git commit -m 'test1' && git push -u origin pr-issue-${{ github.event.issue.number }}
+      env:
+        GIT_AUTHOR_NAME: Test 1
+        GIT_AUTHOR_EMAIL: test@test.test
+  
+
+    - name: Create Pull request
+      run: gh pr create -B main -H pr-issue-${{ github.event.issue.number }} --title ${{ github.event.issue.title }} --body "issue body - ${{ github.event.issue.body }}"
+      env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
