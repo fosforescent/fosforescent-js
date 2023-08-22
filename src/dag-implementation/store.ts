@@ -1,8 +1,7 @@
 import { assert, aggMap } from '../util'
-import { INode, IStore } from './types'
+import { INode, IStore, IFosInterpreter } from '../types'
 import { FosNode, NoContextNode } from './node'
 import { FosInterpreter } from "../interpreter"
-import { IFosInterpreter } from '../interpreter/types'
 import * as crypto from 'crypto'
 
 
@@ -15,6 +14,7 @@ export enum NodeType {
 
 export class Store implements IStore{
   table: Map<string, [string, string][]> = new Map()
+  computations: Map<string, Map<string, string[]>> = new Map()
 
   voidAddress: string = ''
   unitAddress: string = ''
@@ -31,6 +31,8 @@ export class Store implements IStore{
   aliasData: Map<string, string> = new Map()
   aliasHashFunc: (item: string) => string = (item: string) => this.hashString(item)
 
+  keyPair: {public: string, private: string} = {public: '', private: ''}
+
   cache = new Map<string, INode>()
 
   version = 0
@@ -46,7 +48,7 @@ export class Store implements IStore{
       this.externalHashFunc = <T>(item: INode) => this.hashString(JSON.stringify((item.getValue() as T as any).toString()))
       this.init()
     }
-    console.log('roots history init', this.rootsHistory)
+    // console.log('roots history init', this.rootsHistory)
   }
 
   init (): void {
@@ -86,7 +88,7 @@ export class Store implements IStore{
   }
 
   updateRoot (oldInterpreter: IFosInterpreter, newInterpreter: IFosInterpreter){
-    console.log('NEW ROOT! (from store)', 'new', newInterpreter.getDisplayString(), newInterpreter.getChildren().map(x => x.getDisplayString()), 'old',oldInterpreter.getDisplayString(),oldInterpreter.getChildren().map(x => x.getDisplayString()), oldInterpreter, newInterpreter)
+    console.log('NEW ROOT! (from store)', 'new', newInterpreter.getDisplayString(), newInterpreter.getChildren().map(x => x.getDisplayString()), 'old',oldInterpreter.getDisplayString(),oldInterpreter.getChildren().map((x: IFosInterpreter) => x.getDisplayString()), oldInterpreter, newInterpreter)
     // console.trace()
     this.rootsHistory.unshift(newInterpreter.getTarget())
     this.listeners?.forEach((listener) => {
@@ -95,6 +97,7 @@ export class Store implements IStore{
     }) 
     return [] as IFosInterpreter[]
   } 
+
 
   // getRootInterpreterByName(startInstructionName: string) {
   //   console.log('intname', startInstructionName)
@@ -183,7 +186,7 @@ export class Store implements IStore{
 
   create<T>(value: T): INode {
     if (Array.isArray(value)){
-      console.log('create array starting', value)
+      // console.log('create array starting', value)
       value.forEach((item, index) => {
         if (Array.isArray(item) && item.length === 2 && typeof item[0] === 'string' && typeof item[1] === 'string') {
           if (this.checkAddress(item[0]) === NodeType.None){

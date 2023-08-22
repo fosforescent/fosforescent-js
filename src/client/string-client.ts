@@ -1,5 +1,4 @@
-import { IFosInterpreter } from "../interpreter/types";
-import { IFosClient, ViewTemplate } from "./types";
+import { IFosInterpreter} from "../types";
 import { FosClient } from ".";
 
 type StringViewOptions = {
@@ -11,10 +10,10 @@ type StringViewGenerator = (opts?: StringViewOptions) => StringView
 
 
 
-export default class StringClient extends FosClient<StringViewOptions, string> implements IFosClient<StringViewOptions, string> {
+export default class StringClient extends FosClient<StringViewOptions, string> {
 
   getView(opts: StringViewOptions = {level: 0}): string {
-    console.log('get String Client view', this.interpreter.getStubString(), this.interpreter.getChildren().map((child) => child.getStubString()))
+    // console.log('get String Client view', this.interpreter.getStubString(), this.interpreter.getChildren().map((child: IFosInterpreter) => child.getStubString()))
     return this.reduceTree<StringViewOptions, string>(this.distributor, this.accumulator)(opts)
   }
   

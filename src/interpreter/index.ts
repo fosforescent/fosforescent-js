@@ -1,8 +1,6 @@
-import { Fos } from "..";
 import { FosNode, NoContextNode } from "../dag-implementation/node";
 import { Store, NodeType } from "../dag-implementation/store";
-import { INode, NodeStatus, NodeStateSchema, NodeEvents } from '../dag-implementation/types'
-import { IFosInterpreter } from "./types";
+import { INode, NodeStatus, NodeStateSchema, NodeEvents, IFosInterpreter, IStore } from '../types'
 import { assert } from '../util'
 import { createTaskStateMachine, createOneOfStateMachine } from "./state-machines"
 // import { Interpreter, interpret } from "xstate"
@@ -40,12 +38,24 @@ export class FosInterpreter implements IFosInterpreter {
   getTargetEdges(): [string, string][] {
     return this.target.getEdges()
   }
+
+
+  // async run(input: INode): Promise<IFosInterpreter> {
+  //   const func = this.instruction.asInstruction()
+  //   const [newInstruction, newTarget] = await func(this.target)
+  //   if (this.isDone()) {
+  //     const newInt = this.mutate(newInstruction, newTarget)[0]
+  //     return newInt
+  //   } else {
+  //     return this
+  //   }
+  // }
   
 
   mutate(newInstruction: INode, newTarget: INode): [IFosInterpreter, ...IFosInterpreter[]] {
-    console.log('mutate', newInstruction.getAddress(), newTarget.getAddress(), this.getDisplayString())
+    // console.log('mutate', newInstruction.getAddress(), newTarget.getAddress(), this.getDisplayString())
     if (this.parent) {
-      console.log('this parent', typeof this.parent, this.parent)
+      // console.log('this parent', typeof this.parent, this.parent)
       const newParentEdges = this.store.getNodeByAddress(this.parent.getTarget()).getEdges().map((elem) => elem[0] === this.instruction.getAddress() && elem[1] === this.target.getAddress() ? [newInstruction.getAddress(), newTarget.getAddress()] : elem)
       const newParentTarget = this.store.create(newParentEdges)
       const newParent = this.parent.mutate(this.store.getNodeByAddress(this.parent.getInstruction() as string), newParentTarget)[0]
@@ -139,13 +149,38 @@ export class FosInterpreter implements IFosInterpreter {
 
     }, [_newTaskName, newTaskWithName, ..._newRestWithName]) as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
 
-    console.log('taskWithSubtasks', taskWithSubtasks.getDisplayString(), taskWithSubtasks.getStack().map((elem) => elem.getDisplayString()))
+    // console.log('taskWithSubtasks', taskWithSubtasks.getDisplayString(), taskWithSubtasks.getStack().map((elem) => elem.getDisplayString()))
 
 
     return taskWithSubtasks.getStack() as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
 
   }
 
+  // createWorkflow(params: {
+  //   root: INode,
+  //   name: string, 
+    
+  // }: {}): [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]] {
+  //   const [newTask, newThis, ...newRest] = this.spawn(this.store.getNodeByAddress(this.store.allOfAddress), this.store.getNodeByAddress(this.store.voidAddress)) as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
+  //   const [_newTaskName, newTaskWithName, ..._newRestWithName] = newTask.setName(description)
+    
+  //   // console.log ('newTaskWithName', newTaskWithName.getDisplayString())
+  //   const [_finalSubtask, taskWithSubtasks, ..._finalRestWithSubtasks] = deps.reduce((acc, item) => {
+  //     const [prevSubtask, prevTaskWithSubtasks, ...prevRestWithSubtasks] = acc as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
+  //     const [nextSubtask, nextTaskWithSubtask, ...nextRestWithSubtask] = prevTaskWithSubtasks.spawn(this.store.getNodeByAddress(this.store.allOfAddress), item)
+  //     // console.log('prevTaskWithSubtasks', prevTaskWithSubtasks.getDisplayString(), nextTaskWithSubtask.getDisplayString()) 
+  //     return [nextSubtask, nextTaskWithSubtask, ...nextRestWithSubtask]
+
+  //   }, [_newTaskName, newTaskWithName, ..._newRestWithName]) as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
+
+  //   console.log('taskWithSubtasks', taskWithSubtasks.getDisplayString(), taskWithSubtasks.getStack().map((elem) => elem.getDisplayString()))
+
+
+  //   return taskWithSubtasks.getStack() as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
+
+
+
+  // }
   
 
   setName(name: string): [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]] {

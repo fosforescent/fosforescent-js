@@ -2,7 +2,7 @@ import { Fos } from '..'
 import { FosNode } from '../dag-implementation/node'
 import { Store } from '../dag-implementation/store'
 import { FosInterpreter } from "."
-import { IFosInterpreter } from "./types" 
+import { IFosInterpreter } from "../types" 
 
 describe('interpreter basics', () => {
 
@@ -40,18 +40,6 @@ describe('interpreter basics', () => {
   })
 
 
-  test('can create task', () => {    
-    const store = new Store()
-    const interpreter = store.getRoot()
-    console.log('test start', interpreter.getDisplayString())
-    const [task, newInterpreter] = interpreter.createTask('B', [])
-    console.log('tasks for root in test', interpreter.getDisplayString(), newInterpreter.getDisplayString(), task.getDisplayString())
-    const tasks = newInterpreter.getTasks() as [IFosInterpreter, ...IFosInterpreter[]]
-    console.log('tasks', tasks.map(task => task.getDisplayString()))
-    expect(tasks.length).toBe(1)
-    expect(tasks[0].getName()).toBe('B')
-  })
-
 
 
   test('returns correctly and updates root when creating task', () => {
@@ -71,11 +59,11 @@ describe('interpreter basics', () => {
   })
 
   // test.skip('can run task', () => {
-  //   const store = new Store()
-  //   const rootInterpreter = store.getInterpreter(store.voidAddress, store.unitAddress, null) as IFosInterpreter
+  //   const fos = Fos()
+  //   const rootInterpreter = fos.getRoot()
   //   const [task, newInterpreter] = rootInterpreter.createTask('B', [])
-  //   const [workflow, rootWithWorkflow] = newInterpreter.createWorkflow('workflow', [task])
-  //   const [todo, rootWithTodo] = rootWithWorkflow.runTask(workflow)
+  //   const [workflow, rootWithWorkflow] = newInterpreter.createWorkflow('workflow', task, )
+  //   const [todo, rootWithTodo] = rootWithWorkflow.runWorkflow(workflow)
   //   const todos = rootWithTodo.getTodos()
   //   expect(todos.length).toBe(1)
   //   const [completedTodo, rootWithCompletedTodo] = rootWithTodo.setTaskInput(todo)

@@ -120,8 +120,8 @@ describe('store basics', () => {
     const matches = queryNameResult.map((elem) => store.matchPattern(patternNode, elem))
 
 
-    console.log('matches', matches[0]!.map(x => x.getEdges()), 'newnewNode', newNode.getAddress(), 'newNode5', newNode5.getAddress(), 'newNode3', newNode3.getAddress(),)
-    console.log('newNode4', newNode4.getAddress(), 'nameNode', nameNode.getAddress(), 'nameQueryNode', nameQueryNode.getAddress(), 'nodeWithNameQueryNode', nodeWithNameQueryNode.getAddress())
+    // console.log('matches', matches[0]!.map(x => x.getEdges()), 'newnewNode', newNode.getAddress(), 'newNode5', newNode5.getAddress(), 'newNode3', newNode3.getAddress(),)
+    // console.log('newNode4', newNode4.getAddress(), 'nameNode', nameNode.getAddress(), 'nameQueryNode', nameQueryNode.getAddress(), 'nodeWithNameQueryNode', nodeWithNameQueryNode.getAddress())
 
 
     expect(matches[0]).toBeDefined()
@@ -147,7 +147,7 @@ describe('store basics', () => {
 
     const matches = store.queryTriple(store.getNodeByAddress(store.unitAddress), patternNode, newNode4)
 
-    console.log('matches', matches[0], 'newnewNode', newNode.getAddress(), 'newNode5', newNode5.getAddress(), 'newNode3', newNode3.getAddress())
+    // console.log('matches', matches[0], 'newnewNode', newNode.getAddress(), 'newNode5', newNode5.getAddress(), 'newNode3', newNode3.getAddress())
     expect(matches[0]).toBeDefined()
     expect(matches.length).toEqual(1)
     expect(matches[0]![0]!.getAddress()).toBe(newNode7.getAddress())
@@ -171,8 +171,8 @@ describe('store basics', () => {
 
     const matches = store.negativeQueryTriple(store.getNodeByAddress(store.voidAddress), newNode2, patternNode)
 
-    console.log('matches', matches[0]![2]!.getAddress(), 'newNode2', newNode2.getAddress(), 'newNode4', newNode4.getAddress(), 'newNode6', newNode6.getAddress())
-    console.log('matches', matches[0]![2]!.getAddress(), 'newNode7', newNode7.getAddress(), 'newNode', newNode.getAddress(), 'newNode5', newNode5.getAddress())
+    // console.log('matches', matches[0]![2]!.getAddress(), 'newNode2', newNode2.getAddress(), 'newNode4', newNode4.getAddress(), 'newNode6', newNode6.getAddress())
+    // console.log('matches', matches[0]![2]!.getAddress(), 'newNode7', newNode7.getAddress(), 'newNode', newNode.getAddress(), 'newNode5', newNode5.getAddress())
     expect(matches[0]).toBeDefined()
     expect(matches.length).toEqual(1)
     expect(matches[0]![2]!.getAddress()).toBe(newNode6.getAddress())

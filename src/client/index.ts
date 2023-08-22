@@ -1,6 +1,5 @@
-import { IFosClient, ViewTemplate, ViewGenerator } from './types'
-import { INode, IStore } from "../dag-implementation/types"
-import { IFosInterpreter } from '../interpreter/types'
+import { INode, IStore } from "../types"
+import { IFosInterpreter } from '../types'
 // import { interpret } from "xstate"
 import { assert } from '../util'
 
@@ -8,7 +7,7 @@ import { assert } from '../util'
 
 
 
-export class FosClient<S, T> implements IFosClient<S, T> {
+export class FosClient<S, T>  {
 
   path: IFosInterpreter[] = []
   interpreter: IFosInterpreter

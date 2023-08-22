@@ -1,5 +1,5 @@
 import { Duration, NodeData, Probability, Cost, CostAllocation } from './node-data'
-import { INode, NodeStatus, IStore } from './types'
+import { INode, NodeStatus, IStore } from '../types'
 import { assert } from '../util'
 
 import { Store } from './store'
@@ -55,6 +55,15 @@ export class NoContextNode<T> implements INode {
 
   delete(): void {
     this.store.remove(this)
+  }
+
+  asInstruction(): (input: INode) => Promise<INode> {
+    const value = this.getValue()
+    if (typeof value === 'function') {
+      return value as (input: INode) => Promise<INode>
+    } else {
+      throw new Error('provided node is not a function')
+    }
   }
 
 }
@@ -127,5 +136,24 @@ export class FosNode extends NoContextNode<[string, string][]>{
     this.store.remove(this)
   }
 
+  asInstruction(): (input: INode) => Promise<INode> {
+    return async (input: INode) => {
+      const edges = this.getEdges()
+      const results = await Promise.all(edges.map(async ([edgeType, target]) => {
+        const targetNode = this.store.getNodeByAddress(target)
+        const result = await targetNode.asInstruction()(input)
+        return [edgeType, result.getAddress()]
+      })).catch((error) => {
+        console.log('error', error) 
+        return this
+      }) as [string, string][]
+      return new FosNode(results, this.store)  
+    }
+  }
+
 }
 
+
+export class PrimitiveInstructionNode extends NoContextNode<(input: INode) => Promise<INode>> {}
+export class PrimitiveStringNode extends NoContextNode<string> {}
+export class PrimitiveNumberNode extends NoContextNode<string> {}

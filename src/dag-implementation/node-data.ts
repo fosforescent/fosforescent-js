@@ -1,4 +1,4 @@
-import { INode } from './types'
+import { INode } from '../types'
 import { assert } from '../util'
 
 // type NodeData = { duration?: Duration, probability?: Probability, cost?: Cost, costAllocation?: CostAllocation }

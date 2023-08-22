@@ -1,5 +1,5 @@
 import { Interpreter, StateMachine, TypegenDisabled, createMachine, interpret } from 'xstate'
-import { NodeStatus, NodeStateSchema, NodeEvents } from '../dag-implementation/types'
+import { NodeStatus, NodeStateSchema, NodeEvents } from '../types'
 
 
 export function createOneOfStateMachine(): StateMachine<NodeStatus, NodeStateSchema, NodeEvents> {

@@ -1,6 +1,6 @@
 import StringClient from './string-client'
 import { Store } from '../dag-implementation/store'
-import { IFosInterpreter } from '../interpreter/types'
+import { IFosInterpreter } from '../types'
 
 
 // type IFosStringProps = { client: IFosClient<string>, children?: IFosClient<string>[] }
@@ -21,7 +21,7 @@ describe('node basics', () => {
 
     const view = client.getView({level: 0})
 
-    console.log('client displays',view )
+    // console.log('client displays',view )
 
 
     expect(view).toContain('[<alias: allOfEdge>(12ec44838f)]myTestTask1(a6100ccb48)')

@@ -1,28 +1,49 @@
-import { IStore } from "../dag-implementation/types";
-import { IFosInterpreter } from "../interpreter/types";
+import { IStore, INode, IFosInterpreter} from "../types";
 
 interface IPeer {
 
 }
 
+
+export type PeerOptions = {
+  type: 'webrtc' 
+} | {
+  type: 'websocket'
+} | {
+  type: 'http'
+} | {
+  type: 'js'
+}
+
+
+
 class Peer implements IPeer {
 
+  rootsHistory: string[] = [] 
+  nodeRequests: [string, [string, string][]][] = []
+  // proposals: Proposal[] = [] 
 
-  constructor(public store: IStore, pub) {
+
+  constructor(public store: IStore) {
 
   }
 
-  setRoot (root: IFosInterpreter): void {
-    console.log('rootsHistory - s', this.rootsHistory)
-    // console.trace()
-    const newAddress = root.getTarget()
-    if (this.rootsHistory[0] === newAddress) {
-      return
-      // throw new Error('root already set to this address')
-    }
-    this.rootsHistory.unshift(root.getTarget())
-    console.log('rootsHistory - e', this.rootsHistory)
+  pullFromRemote() {
+
   }
+
+  relayProposalToRemote() {
+
+  }
+
+  relayNodeRequestToRemote() {
+
+  }
+
+  relayNodeToRemote() {
+
+  }
+
 
 
 
