@@ -11,5 +11,10 @@ const customJestConfig = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   testEnvironment: 'jest-environment-jsdom',
+  moduleNameMapper: {
+    '\\.(less|scss)$': 'identity-obj-proxy',
+    '\\.(css)$': 'jest-css-modules',
+    "@/(.*)": "<rootDir>/src/$1",
+  },
 }
 module.exports = customJestConfig

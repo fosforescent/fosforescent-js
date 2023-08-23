@@ -24,7 +24,7 @@ describe('node basics', () => {
     // console.log('client displays',view )
 
 
-    expect(view).toContain('[<alias: allOfEdge>(12ec44838f)]myTestTask1(a6100ccb48)')
+    expect(view).toContain('[<alias: allOf>(97d861376b)]myTestTask1(91506056ee)')
   })
 
   

@@ -5,6 +5,7 @@ import { assert } from '../util'
 import { createTaskStateMachine, createOneOfStateMachine } from "./state-machines"
 // import { Interpreter, interpret } from "xstate"
 import StringClient from "../client/string-client";
+import { constructAliases } from "@/dag-implementation/primitive-node";
 
 
 
@@ -237,7 +238,7 @@ export class FosInterpreter implements IFosInterpreter {
         name = this.store.getInterpreter(node.getAddress(), null, this).getName()
       }catch{
         name = '<no name>'
-        for (const [aliasName, address] of this.store.aliasData.entries()) {
+        for (const [aliasName, address] of constructAliases(this.store)) {
           if (address === node.getAddress()) {
             name = `<alias: ${aliasName}>`
           }
@@ -251,7 +252,7 @@ export class FosInterpreter implements IFosInterpreter {
   getAliases(): [string | null, string | null] {
     const aliases: [string| null, string | null] = [null, null]
 
-    for (const [aliasName, address] of this.store.aliasData.entries()) {
+    for (const [aliasName, address] of constructAliases(this.store)) {
       if (address === this.target.getAddress()) {
         aliases[1] = aliasName
       }

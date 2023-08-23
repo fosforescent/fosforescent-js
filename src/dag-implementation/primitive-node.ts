@@ -7,6 +7,18 @@ export const getTerminalNode = (store: IStore) => {
   return terminalNode
 }
 
+export const getUnitNode = (store: IStore) => {
+  const terminalNode = getTerminalNode(store)
+  const unitNode = store.create([[terminalNode.getAddress(), terminalNode.getAddress()]])
+  return unitNode
+}
+
+export const getAllOfNode = (store: IStore) => {
+  const unitNode = getUnitNode(store)
+  const allOfNode = store.create([[unitNode.getAddress(), unitNode.getAddress()]])
+  return allOfNode
+}
+
 export const getIdNode = (store: IStore) => {
   const idNode = store.create((node: INode) => node)
   return idNode
@@ -23,7 +35,24 @@ export const getNthDepNodeWithPattern = (store: IStore, n: number, pattern: INod
 
 }
 
-export const getEffectNode = (effect: (node: INode) => Promise<INode>) => {
-  
+
+export const getRootInstructionNode = (store: IStore) => {
 
 }
+
+export const getNthCommentInstructionNode = (store: IStore) => {
+
+
+}
+
+export const getWorkflowInstructionNode = (store: IStore) => {
+
+}
+
+export const constructAliases = (store: IStore) => Object.entries({
+  terminal: getTerminalNode(store).getAddress(),
+  id: getIdNode(store).getAddress(),
+  nothing: getNothingNode(store).getAddress(),
+  unit: getUnitNode(store).getAddress(),
+  allOf: getAllOfNode(store).getAddress(),
+})

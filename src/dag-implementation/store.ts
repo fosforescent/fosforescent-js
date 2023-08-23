@@ -2,8 +2,9 @@ import { assert, aggMap } from '../util'
 import { INode, IStore, IFosInterpreter } from '../types'
 import { FosNode, NoContextNode } from './node'
 import { FosInterpreter } from "../interpreter"
-import * as crypto from 'crypto'
+import { SHA256 } from 'crypto-js'
 
+import { getTerminalNode } from './primitive-node'
 
 
 export enum NodeType {
@@ -26,43 +27,34 @@ export class Store implements IStore{
   listeners: ((oldInterpreter: IFosInterpreter, newInterpreter: IFosInterpreter) => void)[] = []
 
   externalData: Map<string, INode> = new Map()
-  externalHashFunc: (item: INode) => string
-
-  aliasData: Map<string, string> = new Map()
-  aliasHashFunc: (item: string) => string = (item: string) => this.hashString(item)
-
-  keyPair: {public: string, private: string} = {public: '', private: ''}
+  hashFunc: (item: INode) => string
 
   cache = new Map<string, INode>()
 
   version = 0
 
-  constructor(json?: string) {
+  constructor({ json, publicKey } : { json?: string, publicKey?: string } = {}) {
     if (json) {
-      this.externalHashFunc = <T>(item: INode) => this.hashString(JSON.stringify((item.getValue() as T as any).toString()))
+      this.hashFunc = <T>(item: INode) => this.hashString(JSON.stringify((item.getValue() as T as any).toString()))
       this.fromJSON(json)
       console.log('gettingInt', this.externalData)
     } else {
       this.table = new Map()
       this.externalData = new Map()
-      this.externalHashFunc = <T>(item: INode) => this.hashString(JSON.stringify((item.getValue() as T as any).toString()))
+      this.hashFunc = <T>(item: INode) => this.hashString(JSON.stringify((item.getValue() as T as any).toString()))
       this.init()
     }
     // console.log('roots history init', this.rootsHistory)
   }
 
   init (): void {
-    const voidNode = this.getNodeByAddress(this.insert([]))
+    const voidNode = getTerminalNode(this)
     this.voidAddress = voidNode.getAddress()
     // console.log("initializing store")
-    this.aliasData.set('void', this.voidAddress)
     this.cache.set(this.voidAddress, voidNode)
     this.unitAddress = this.insert([[this.voidAddress, this.voidAddress]])
-    this.aliasData.set('unit', this.unitAddress)
     this.nameAddress = this.insert([[this.voidAddress, this.unitAddress]])
-    this.aliasData.set('nameEdge', this.nameAddress)
     this.allOfAddress = this.insert([[this.unitAddress, this.unitAddress]])
-    this.aliasData.set('allOfEdge', this.allOfAddress)
     this.previousVersionAddress = this.insert([[this.voidAddress, this.nameAddress]])
     const workflowNameNode = this.create('workflow')
     const workflowAddress = this.insert([[this.unitAddress, this.allOfAddress], [this.nameAddress, workflowNameNode.getAddress()]])
@@ -163,9 +155,8 @@ export class Store implements IStore{
 
   hashString (stringToHash: string): string {
     // console.log('hashString', stringToHash)
-    const hash = crypto.createHash('sha1')
-    hash.update(stringToHash)
-    const hashedString = hash.digest('hex')
+    const hash = SHA256(stringToHash)
+    const hashedString = hash.toString()
     // console.log('string to hash', stringToHash, hashedString)
     // console.trace()
     return hashedString
@@ -226,7 +217,7 @@ export class Store implements IStore{
         throw new Error(`node ${data.getAddress()} already exists in external data`)
       }
     }
-    const address = this.externalHashFunc(data)
+    const address = this.hashFunc(data)
     // console.log('insertExternal', address, data)
     if (this.externalData.get(address)) return address
     else {
@@ -303,10 +294,10 @@ export class Store implements IStore{
     if(pattern.getAddress() === entry.getAddress()){
       return []
     }
-    if(pattern.getAddress() === this.aliasData.get('unit')){
+    if(pattern.getAddress() === this.unitAddress){
       return [entry]
     }
-    if(pattern.getAddress() === this.aliasData.get('void')){
+    if(pattern.getAddress() === this.voidAddress){
       throw new Error(`pattern expecte void --- pattern ${pattern} does not match entry ${entry}`, { cause: { patternFailed: true } })
     }
     if(this.checkAddress(pattern.getAddress()) === NodeType.External || this.checkAddress(entry.getAddress()) === NodeType.External){
@@ -323,7 +314,7 @@ export class Store implements IStore{
           throw new Error(`pattern ${patternKey} has ${patternValues.length} entries, but node ${patternKey} has ${nodeMap.get(patternKey)?.length} entries.  Cannot resolve pattern`, { cause: { patternFailed: true } })
         }else{
           patternValues.forEach((patternValue, index) => {
-            if (patternValue === this.aliasData.get('unit')){
+            if (patternValue === this.unitAddress){
               patternResult.push(this.getNodeByAddress(entryTargetsForKey[index] as string))
             } else if (entryTargetsForKey[index] !== patternValue){
               // TODO: figure out what do here
@@ -370,16 +361,16 @@ export class Store implements IStore{
   }
 
   negativeQueryTriple(subject: INode, predicate: INode, object: INode): [INode, INode, INode][] {
-    if (subject.getAddress() === this.aliasData.get('void')) {
+    if (subject.getAddress() === this.voidAddress) {
       const nodesToTest = this.query(object)
       const result = nodesToTest.filter((nodeToTest) => {
-        const test = this.queryTriple(this.getNodeByAddress(this.aliasData.get('unit') as string), predicate, nodeToTest)
+        const test = this.queryTriple(this.getNodeByAddress(this.unitAddress as string), predicate, nodeToTest)
         return test.length === 0
       })
       return result.map((node) => [subject, predicate, node] as [INode, INode, INode])
-    } else if (predicate.getAddress() === this.aliasData.get('void')) {
+    } else if (predicate.getAddress() === this.voidAddress) {
       throw new Error('not implemented')
-    } else if (object.getAddress() === this.aliasData.get('void')) {
+    } else if (object.getAddress() === this.voidAddress) {
       throw new Error('not implemented')
     } else {
       throw new Error('not a negative query')
