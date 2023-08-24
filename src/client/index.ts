@@ -1,11 +1,15 @@
+import { RootFosInterpreter } from "@/interpreter"
 import { INode, IStore } from "../types"
+import { Store } from "../dag-implementation/store"
 import { IFosInterpreter } from '../types'
 // import { interpret } from "xstate"
 import { assert } from '../util'
 
 
 
-
+/**
+ * TODO: remove class & simplify
+ */
 
 export class FosClient<S, T>  {
 
@@ -13,7 +17,9 @@ export class FosClient<S, T>  {
   interpreter: IFosInterpreter
   
   constructor(public store: IStore, public target: string, public instruction: string) {
-    this.interpreter = store.getInterpreter(target, instruction, null)
+    const instructionNode = store.getNodeByAddress(instruction)
+    const targetNode = store.getNodeByAddress(target)
+    this.interpreter = new RootFosInterpreter(store, instructionNode, targetNode)
     // console.log('SETTING CALLBACK', this.setInterpreter)
     assert(this.interpreter !== undefined, `Could not find interpreter for ${instruction} ${target}`)
     // this.composeView = options.composeView

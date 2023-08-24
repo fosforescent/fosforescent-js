@@ -114,16 +114,16 @@ export class CostAllocation {
   }
 
 
-  setAllocation(allocation: number) {
-    if (this.children.length > 0){
-      throw new Error('this allocation is within use')
-    }
-    if (this.parent && (allocation - this.totalAllocation) > this.parent.getBalance()) {
-      throw new Error('this allocation is too large')
-    }
-    this.totalAllocation = allocation
-    this.parent?.handleChildAllocationChange(this)
-  }
+  // setAllocation(allocation: number) {
+  //   if (this.children.length > 0){
+  //     throw new Error('this allocation is within use')
+  //   }
+  //   if (this.parent && (allocation - this.totalAllocation) > this.parent.getBalance()) {
+  //     throw new Error('this allocation is too large')
+  //   }
+  //   this.totalAllocation = allocation
+  //   this.parent?.handleChildAllocationChange(this)
+  // }
 
   handleChildAllocationChange(child: CostAllocation) {
       assert(this.getBalance() <= this.totalAllocation, 'Children must sum to less than parent value')

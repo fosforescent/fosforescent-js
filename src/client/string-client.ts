@@ -8,7 +8,9 @@ type StringViewOptions = {
 type StringView = ({interpreter}: {interpreter: IFosInterpreter}) => string;
 type StringViewGenerator = (opts?: StringViewOptions) => StringView
 
-
+/**
+ * TODO: remove this and replace with single, simplified function
+ */
 
 export default class StringClient extends FosClient<StringViewOptions, string> {
 

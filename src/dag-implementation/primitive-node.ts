@@ -30,6 +30,13 @@ export const getNothingNode = (store: IStore) => {
   return nothingNode
 }
 
+export const getNameNode = (store: IStore) => {
+  const terminalNode = getTerminalNode(store)
+  const unitNode = getUnitNode(store)
+  const nameNode = store.create([[terminalNode.getAddress(), unitNode.getAddress()]])
+  return nameNode
+}
+
 export const getNthDepNodeWithPattern = (store: IStore, n: number, pattern: INode) => {
   if (n < 0) throw new Error('cannot get negative dep')
 

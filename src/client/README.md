@@ -1,0 +1,1 @@
+This could easily be simplified.  Most of the complexity in the FosClient class is just there because of a failed previous experiment in abstracting out the "Client" concept.  

@@ -1,5 +1,5 @@
 import { INode } from '../types'
-import { IFosInterpreter } from "../interpreter/types"
+import { IFosInterpreter } from "../types"
 import { Duration, DurationUnit, Cost, CostAllocation } from '../dag-implementation/node-data'
 import { assert } from '../util'
 

@@ -1,10 +1,10 @@
 import { assert, aggMap } from '../util'
 import { INode, IStore, IFosInterpreter } from '../types'
 import { FosNode, NoContextNode } from './node'
-import { FosInterpreter } from "../interpreter"
+import { FosInterpreter, RootFosInterpreter } from "../interpreter"
 import { SHA256 } from 'crypto-js'
 
-import { getTerminalNode } from './primitive-node'
+import { getAllOfNode, getNameNode, getTerminalNode, getUnitNode } from './primitive-node'
 
 
 export enum NodeType {
@@ -13,7 +13,7 @@ export enum NodeType {
   External = 2
 }
 
-export class Store implements IStore{
+export class Store implements IStore {
   table: Map<string, [string, string][]> = new Map()
   computations: Map<string, Map<string, string[]>> = new Map()
 
@@ -52,9 +52,9 @@ export class Store implements IStore{
     this.voidAddress = voidNode.getAddress()
     // console.log("initializing store")
     this.cache.set(this.voidAddress, voidNode)
-    this.unitAddress = this.insert([[this.voidAddress, this.voidAddress]])
-    this.nameAddress = this.insert([[this.voidAddress, this.unitAddress]])
-    this.allOfAddress = this.insert([[this.unitAddress, this.unitAddress]])
+    this.unitAddress = getUnitNode(this).getAddress()
+    this.nameAddress = getNameNode(this).getAddress()
+    this.allOfAddress = getAllOfNode(this).getAddress()
     this.previousVersionAddress = this.insert([[this.voidAddress, this.nameAddress]])
     const workflowNameNode = this.create('workflow')
     const workflowAddress = this.insert([[this.unitAddress, this.allOfAddress], [this.nameAddress, workflowNameNode.getAddress()]])
@@ -117,17 +117,16 @@ export class Store implements IStore{
     return this.getRoot(instructionNode)
   }
 
-  getRoot(node?: INode): IFosInterpreter {
+  getRoot(node?: INode): RootFosInterpreter {
     // console.log('rootsHistory', this.rootsHistory)
     const root = this.rootsHistory[0]
     if (root === undefined) {
       const newRoot = this.create([[this.nameAddress, this.create('root').getAddress()]]).getAddress()
-      const rootInterpreter = this.getInterpreter(newRoot, null, null)
-      this.setRoot(rootInterpreter)
+      const rootInterpreter = new RootFosInterpreter(this, this.getNodeByAddress(newRoot), this.getNodeByAddress(this.voidAddress))
       return rootInterpreter
     }
     // console.log('gettingInt', this.externalData)
-    return this.getInterpreter(root, node?.getAddress() || this.voidAddress, null)
+    return new RootFosInterpreter(this, node || this.getNodeByAddress(this.voidAddress), this.getNodeByAddress(this.voidAddress))
   }
 
   // getRootInterpreters(): IFosInterpreter[] {
@@ -140,17 +139,6 @@ export class Store implements IStore{
   //   const interpreters = rootNode.getEdges().map(([instruction, target]) => this.getInterpreter(target, instruction, null))
   //   return interpreters
   // }
-
-  getInterpreter( target: string | null, instruction: string | null, parent: IFosInterpreter | null): IFosInterpreter {
-    // console.log('getInterpreter', target, instruction)
-    assert (typeof target === 'string' || target === null, 'target must be string or null')
-    assert (typeof instruction === 'string' || instruction === null, 'instruction must be string or null')
-    const targetNode = target ? this.getNodeByAddress(target) : this.getNodeByAddress(this.voidAddress)
-    const instructionNode = instruction ? this.getNodeByAddress(instruction) : this.getNodeByAddress(this.voidAddress)
-    const newInterpreter = new FosInterpreter(targetNode, instructionNode, this, parent)
-    return newInterpreter
-  }
-
 
 
   hashString (stringToHash: string): string {

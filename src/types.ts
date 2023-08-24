@@ -1,5 +1,6 @@
 // import { Interpreter, StateMachine, StateValue } from 'xstate'
 import { Cost, CostAllocation, NodeData } from './dag-implementation/node-data'
+import { NodeType, Store } from './dag-implementation/store'
 
 export enum NodeStatus {
   NotStarted = 'NotStarted',
@@ -83,8 +84,6 @@ export interface INode {
 }
 
 export interface IStore {
-  rootsHistory: string[]
-  getInterpreter( target: string | null, instruction: string | null, parent: IFosInterpreter | null): IFosInterpreter 
   create<T>(value: T, opts?: {name?: string}): INode
   query(query: INode): INode[]
   queryTriple(subject: INode, predicate: INode, object: INode): [INode, INode, INode][] 
@@ -93,9 +92,9 @@ export interface IStore {
   remove(node: INode): void
   matchPattern(pattern: INode, target: INode, throwError: boolean): INode[]
   getNodeByAddress(address: string): INode
-  listenRoot(cb: (oldInterpreter: IFosInterpreter, newInterpreter: IFosInterpreter) => void): void
-  setRoot(root: IFosInterpreter): void
   toJSON(): (string | number)[]
+  getRoot(node?: INode): IFosInterpreter
+  checkAddress(address: string): NodeType
   // getRootInterpreterByName(name: string): IFosInterpreter
   // getRootInterpreters(): IFosInterpreter[]
 }
@@ -114,7 +113,7 @@ export interface IFosInterpreter  {
     // addNewAllOfWithDescription(description: string): [INode, INode]
     // addNewOneOfWithDescription(description: string): [INode, INode]
     store: IStore
-    parent: IFosInterpreter | null 
+    committed: boolean
 
     createTask(description: string, deps?: INode[]): [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
     getTasks(): IFosInterpreter[]
@@ -136,6 +135,7 @@ export interface IFosInterpreter  {
     getChildren(): IFosInterpreter[]
     getNodeByName(name: string): INode | undefined
     followEdgeFromStubString(stubString: string, latest?: boolean): IFosInterpreter 
+    followEdge(instruction: string, target: string): IFosInterpreter
     // processChildChange(oldChildInterpreter: IFosInterpreter, newChildInterpreter: IFosInterpreter): IFosInterpreter[] 
     // parentCallback: (oldInterpreter: IFosInterpreter, newInterpreter: IFosInterpreter) => IFosInterpreter[]
     spawn: (instruction: INode, target: INode) => [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]

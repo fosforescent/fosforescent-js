@@ -2,7 +2,6 @@ import { Duration, NodeData, Probability, Cost, CostAllocation } from './node-da
 import { INode, NodeStatus, IStore } from '../types'
 import { assert } from '../util'
 
-import { Store } from './store'
 
 
 export class NoContextNode<T> implements INode {

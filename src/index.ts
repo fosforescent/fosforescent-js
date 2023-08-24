@@ -2,6 +2,7 @@
 import { addExamples } from "./demo/example-workflows";
 import { Store } from "./dag-implementation/store";
 import { INode, IStore, IFosInterpreter } from "./types";
+import { RootFosInterpreter } from "./interpreter";
 
 /**
  * This is meant to provide an interface that doesn't require explicit declaration of options & parameters. 
@@ -21,14 +22,18 @@ export interface IFosInstance {
   getRoot(): IFosInterpreter
   getChildren(): IFosInterpreter[]
   getAncestors(): IFosInterpreter[]
+  mine(): boolean
+  // runMine(): void
+  createTransaction(): IFosInterpreter
 }
 
 
-class FosInstance {
+
+class FosInstance implements IFosInstance{
 
   store: IStore
-  // currentTransaction: ITransaction
-  // transactions: ITransaction[] = []
+  currentTransaction: number = 0
+  transactions: IFosInterpreter[] = []
 
   constructor (options: FosOptions = {
     demo: true,
@@ -37,21 +42,26 @@ class FosInstance {
 
     this.store = new Store()
     
-    // const initialRootInterpreter = this.store.getRoot()
-    // const startTransaction = new Transaction()
-    // this.transactions.push(startTransaction)
+    const initialRootInterpreter = this.store.getRoot()
+    this.transactions.push(initialRootInterpreter)
 
-    // if (options?.demo){
-    //   const interpreterWithExamples = addExamples(initialRootInterpreter)
-    //   this.initialRootInterpreter  = interpreterWithExamples[interpreterWithExamples.length - 1] as IFosInterpreter
-    // } else {
-    //   this.initialRootInterpreter = initialRootInterpreter
-    // }
   }
 
   getRoot(){
-    return this.store.getInterpreter(null, null, null)
+    const currentTransaction = this.transactions[this.currentTransaction]
+    if (!currentTransaction){
+      throw new Error('no current root')
+    }
+    if (currentTransaction.committed){
+      throw new Error('current root is committed')
+    }
+    return currentTransaction
   }
+
+  getRootOptions(){
+
+  }
+
 
   // addPeer(options: PeerOptions){
 
@@ -90,6 +100,30 @@ class FosInstance {
 
   getRootAddress(){
     return this.getRoot().getTarget()
+  }
+
+  registerRootInstruction(pattern: INode){
+    this.store.create
+  }
+
+  // run(){
+  //   this.getRoot().run()
+  // }
+
+  mine(){
+    console.log('test')
+    return false
+  }
+
+  
+
+  createTransaction(): RootFosInterpreter {
+    const currentTransaction = this.getRoot()
+    const currentInstruction = this.store.getNodeByAddress(currentTransaction.getInstruction())
+    const currentTarget = this.store.getNodeByAddress(currentTransaction.getTarget())
+    const newTransaction = new RootFosInterpreter(this.store, currentInstruction, currentTarget)
+    this.transactions.push(newTransaction)
+    return newTransaction
   }
 
 }

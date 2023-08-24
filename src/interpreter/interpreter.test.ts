@@ -1,7 +1,7 @@
 import { Fos } from '..'
 import { FosNode } from '../dag-implementation/node'
 import { Store } from '../dag-implementation/store'
-import { FosInterpreter } from "."
+import { FosInterpreter, RootFosInterpreter } from "."
 import { IFosInterpreter } from "../types" 
 
 describe('interpreter basics', () => {
@@ -11,7 +11,7 @@ describe('interpreter basics', () => {
     const store = new Store()
     const descriptionStringAddress = store.create('test1').getAddress()
 
-    const testInterpreter = store.getInterpreter(null, null, null)
+    const testInterpreter = new RootFosInterpreter(store)
     const checkStack1 = testInterpreter.getStack()
     expect(checkStack1.length).toBe(1)
 
@@ -44,7 +44,7 @@ describe('interpreter basics', () => {
 
   test('returns correctly and updates root when creating task', () => {
     const store = new Store()
-    const interpreter = store.getInterpreter(store.voidAddress, store.unitAddress, null) as IFosInterpreter
+    const interpreter = new RootFosInterpreter(store, store.getNodeByAddress(store.voidAddress), store.getNodeByAddress(store.unitAddress)) as IFosInterpreter
     const [name, updatedInterpreter] = interpreter.setName('root')
     const result = updatedInterpreter.createTask('B', [])
     expect(result.length).toBe(2)
