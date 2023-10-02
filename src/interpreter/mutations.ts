@@ -1,4 +1,4 @@
-import { getIdNode, getNothingNode, getAllOfNode, getTerminalNode } from "@/dag-implementation/primitive-node";
+import { getIdNode, getNothingNode, getAllOfNode, getTerminalNode } from "../dag-implementation/node-factory";
 import { IFosInterpreter, IStore, INode } from "..";
 
     

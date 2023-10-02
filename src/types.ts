@@ -63,8 +63,6 @@ export type ChildEventTypes = ChildEvents['type']
 
 export interface INode {
 
-  primitiveTag: string | undefined
-
   getValue(): unknown
 
   getAddress(): string
@@ -76,11 +74,14 @@ export interface INode {
   updateEdge(oldEdgeType: string, oldTarget: string, newEdgeType: string, newTarget: string): INode
 
   asInstruction(): (input: INode) => Promise<INode>
+  generateTarget<T, S>(input?: any): INode
 
   delete(): void
 
   toString(): string
   toJSON(): string // must not include store
+
+  merge(node: INode): INode
 }
 
 export interface IStore {
@@ -148,6 +149,14 @@ export interface IFosInterpreter  {
     setValue(value: string): [IFosInterpreter, ...IFosInterpreter[]]
     getAvailableInstructions(): INode[]
     getBlank(instruction: INode): IFosInterpreter[]
+    parseInput(input: any): [IFosInterpreter, ...IFosInterpreter[]]
+
+    getActions(): {[key: string]: INode}
+    getAction(alias: string): INode
+    followEdgeFromAlias(alias: string): IFosInterpreter
+    spawnFromAlias(alias: string): IFosInterpreter
+    addAction(alias: string, node: INode): [IFosInterpreter, ...IFosInterpreter[]]
+
   }
   
   

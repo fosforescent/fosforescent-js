@@ -1,65 +1,117 @@
-import { NoContextNode } from "./node";
-import { IStore, INode } from "..";
+import { IFosInterpreter, INode, IStore } from '..';
+import { FosNode, NoContextNode } from './node'
+import { getAllOfNode } from '../dag-implementation/node-factory';
+
+export class PrimitiveStringNode extends NoContextNode<string> {}
+export class PrimitiveNumberNode extends NoContextNode<string> {}
 
 
-export const getTerminalNode = (store: IStore) => {
-  const terminalNode = store.create([])
-  return terminalNode
-}
+export class PrimitiveInstructionNode extends FosNode implements INode {
 
-export const getUnitNode = (store: IStore) => {
-  const terminalNode = getTerminalNode(store)
-  const unitNode = store.create([[terminalNode.getAddress(), terminalNode.getAddress()]])
-  return unitNode
-}
+  constructor(interpreter: IFosInterpreter, ){
+    super([], interpreter.store)
+  }
 
-export const getAllOfNode = (store: IStore) => {
-  const unitNode = getUnitNode(store)
-  const allOfNode = store.create([[unitNode.getAddress(), unitNode.getAddress()]])
-  return allOfNode
-}
+  addTypeConstructor(alias: string) {
 
-export const getIdNode = (store: IStore) => {
-  const idNode = store.create((node: INode) => node)
-  return idNode
-}
-
-export const getNothingNode = (store: IStore) => {
-  const terminalNode = getTerminalNode(store)
-  const nothingNode = store.create((node: INode) => terminalNode)
-  return nothingNode
-}
-
-export const getNameNode = (store: IStore) => {
-  const terminalNode = getTerminalNode(store)
-  const unitNode = getUnitNode(store)
-  const nameNode = store.create([[terminalNode.getAddress(), unitNode.getAddress()]])
-  return nameNode
-}
-
-export const getNthDepNodeWithPattern = (store: IStore, n: number, pattern: INode) => {
-  if (n < 0) throw new Error('cannot get negative dep')
-
-}
-
-
-export const getRootInstructionNode = (store: IStore) => {
-
-}
-
-export const getNthCommentInstructionNode = (store: IStore) => {
+  }
 
 
 }
 
-export const getWorkflowInstructionNode = (store: IStore) => {
+export class TreeInstructionNode extends FosNode implements INode {
+
+
+  asInstruction(): (input: INode) => Promise<INode> {
+      throw new Error("Method not implemented.");
+  }
+
+  addDep() {
+
+  }
+
+  getDeps() {
+
+  }
+
 
 }
 
-export const constructAliases = (store: IStore) => Object.entries({
-  terminal: getTerminalNode(store).getAddress(),
-  id: getIdNode(store).getAddress(),
-  nothing: getNothingNode(store).getAddress(),
-  unit: getUnitNode(store).getAddress(),
-  allOf: getAllOfNode(store).getAddress(),
-})
+
+
+export const getStringInstruction = (store: IStore, { value } : { value?: RegExp } = {}) => {
+return (new StringInstructionNode(value || /.*/, store))
+}
+
+export const getEffectInstruction = (store: IStore, { callback, instruction } : { callback?: (node: INode) => Promise<INode>, instruction?: INode } = {}) => {
+  return (new EffectInstructionNode(callback || (async (node) => { console.log('node',node); return node} ), store)) 
+}
+
+
+class StringInstructionNode extends NoContextNode<{ pattern?: RegExp}> implements INode {
+  constructor(pattern: RegExp, store: IStore) {
+    super({pattern}, store, false)
+    // console.log('addr', this.getAddress())
+  }
+
+  generateTarget<S>(data?: S): INode {
+    // console.log('here')
+    return new NoContextNode(data || '', this.store, false)
+  }
+
+
+
+}
+
+class EffectInstructionNode extends NoContextNode<{ callback?: (node: INode) => Promise<INode>}> implements INode {
+  constructor(callback: (node: INode) => Promise<INode>, store: IStore) {
+    super({callback}, store, false)
+    console.log('addr', this.getAddress())
+  }
+
+  generateTarget<S>(data?: S): INode {
+    const previousRootEdge = this.store.create('previousRootEdge')
+    const value: [string, string][] = [
+      // [previousRootEdge.getAddress(), data?.currentRoot?.getAddress()] as [string, string],
+    ]
+     
+    const tentativeTarget = new FosNode(value, this.store)
+    return tentativeTarget
+
+  }
+
+}
+
+
+
+
+class FoldersNode extends FosNode implements INode {
+
+
+}
+
+class TagsNode extends FosNode implements INode {
+
+}
+
+class DependencyNode extends FosNode implements INode {
+
+}
+
+class CommentNode extends FosNode implements INode {
+
+}
+
+class OptionNode extends FosNode implements INode {
+    
+}
+
+class ListNode extends FosNode implements INode {
+
+}
+
+class BooleanNode extends FosNode implements INode {
+
+}
+class FalseNode extends FosNode implements INode {}
+class TrueNode extends FosNode implements INode {}

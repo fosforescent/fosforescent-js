@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
+    "start": "npx tsx src/cli/repl.ts",
     "test": "npx jest",
     "build": "npx tsc",
     "test:ci": "npx jest --ci --verbose --maxWorkers=2"
@@ -19,6 +20,7 @@
     "jest": "^29.6.3",
     "jest-environment-jsdom": "^29.6.2",
     "ts-jest": "^29.1.1",
+    "tsx": "^3.12.8",
     "typescript": "^5.1.6"
   }
 }

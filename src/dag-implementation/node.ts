@@ -6,7 +6,6 @@ import { assert } from '../util'
 
 export class NoContextNode<T> implements INode {
 
-  primitiveTag: string | undefined = undefined
   address: string = ''
 
   constructor (public value: T, public store: IStore, internal = false) {
@@ -65,11 +64,24 @@ export class NoContextNode<T> implements INode {
     }
   }
 
+  generateTarget<S>(data: S): INode {
+    console.log('here', data)
+    throw new Error('Method not implemented.')
+  }
+
+  merge(other: INode): INode {
+    if (typeof other.getValue() !== typeof this.getValue()) {
+      throw new Error('Cannot merge nodes of different types')
+    }else{
+      return other
+    }
+  }
+
+
 }
 
 
-export class FosNode extends NoContextNode<[string, string][]>{
-  primitiveTag: string | undefined = undefined
+export class FosNode extends NoContextNode<[string, string][]> implements INode {
 
   constructor(value: [string, string][], store: IStore) {
     value.forEach((elem) => {
@@ -150,9 +162,20 @@ export class FosNode extends NoContextNode<[string, string][]>{
     }
   }
 
+
+  merge(other: INode): INode {
+    // TODO: make this actually merge stuff
+    console.log('merge', this.getAddress(), other.getAddress())
+    const newNode = other.getEdges().reduce((acc: INode, [edgeType, target]: [string, string]) => {
+      return acc.addEdge(edgeType, target)
+    }, this)
+    return newNode
+  }
+
+  generateTarget<S>(data?: S): INode {
+    console.log('here', data)
+    return this.store.create(data || [])
+  }
+
 }
 
-
-export class PrimitiveInstructionNode extends NoContextNode<(input: INode) => Promise<INode>> {}
-export class PrimitiveStringNode extends NoContextNode<string> {}
-export class PrimitiveNumberNode extends NoContextNode<string> {}

@@ -1,4 +1,4 @@
-import { RootFosInterpreter } from "@/interpreter"
+import { RootFosInterpreter } from "../interpreter"
 import { INode, IStore } from "../types"
 import { Store } from "../dag-implementation/store"
 import { IFosInterpreter } from '../types'

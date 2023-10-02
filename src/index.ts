@@ -17,23 +17,39 @@ export type FosOptions = {
 }
 
 
-export interface IFosInstance {
-  getRootAddress(): string
-  getRoot(): IFosInterpreter
-  getChildren(): IFosInterpreter[]
-  getAncestors(): IFosInterpreter[]
-  mine(): boolean
+export interface IFosInstance<T> {
+  // getRootAddress(): string
+  // getRoot(): IFosInterpreter
+  // getChildren(): IFosInstance[]
+  // getAncestors(): IFosInterpreter[]
+  // mine(): boolean
   // runMine(): void
-  createTransaction(): IFosInterpreter
+  // createTransaction(): IFosInterpreter
+  // commit(stack: IFosInterpreter[]): void
+  getValue(): T
+  updateValue(value: T): T
+  registerAction(action: string, callback: (node: IFosInstance<T>) => Promise<IFosInstance<T>>): void
+  doAction(action: string): Promise<IFosInstance<T>>
+
+}
+
+export interface IExtension {
+  name: string
+  icon: string
+  // rowDisplay: 
+  baseNode: INode
+  validate: (node: INode) => INode
+
 }
 
 
 
-class FosInstance implements IFosInstance{
+class FosInstance<T> implements IFosInstance<T>{
 
   store: IStore
   currentTransaction: number = 0
   transactions: IFosInterpreter[] = []
+  extensions: IExtension[] = []
 
   constructor (options: FosOptions = {
     demo: true,
@@ -59,7 +75,7 @@ class FosInstance implements IFosInstance{
   }
 
   getRootOptions(){
-
+    return this.extensions
   }
 
 
@@ -88,14 +104,9 @@ class FosInstance implements IFosInstance{
   //   return this.store.getNodeByAddress(this.root)
   // }
 
-  getChildren(){
-    return this.getRoot().getChildren()
-  }
-
-  getAncestors(){
-    const copiedStack = this.getRoot().getStack()
-    copiedStack.reverse()
-    return copiedStack
+  getChildren(): IFosInstance<T>[] {
+    throw new Error('not implemented')
+    // return this.getRoot().getChildren()
   }
 
   getRootAddress(){
@@ -106,18 +117,37 @@ class FosInstance implements IFosInstance{
     this.store.create
   }
 
+  registerExtension(extension: IExtension){
+    this.extensions.push(extension)
+  }
   // run(){
   //   this.getRoot().run()
   // }
 
-  mine(){
+  mine(): boolean {
     console.log('test')
+    /**
+     * 1. Get current root
+     * 2. Scan expressions... for each
+     * 3. Search calculations for instruction/target pair
+     * 4. If found, respond with calculation/confidence
+     * 5. If not found, attempt to calculate
+     * 6. If interpreter cannot simplify, it will reject promise, go to next expression
+     * 7. If interpreter can simplify, it will return new INode 
+    */
+
     return false
   }
 
-  
+  import(data: any) {
 
-  createTransaction(): RootFosInterpreter {
+  }
+
+  export() {
+
+  }
+
+  createTransaction(): IFosInterpreter {
     const currentTransaction = this.getRoot()
     const currentInstruction = this.store.getNodeByAddress(currentTransaction.getInstruction())
     const currentTarget = this.store.getNodeByAddress(currentTransaction.getTarget())
@@ -125,10 +155,34 @@ class FosInstance implements IFosInstance{
     this.transactions.push(newTransaction)
     return newTransaction
   }
+  
+  commit(stack: IFosInterpreter[]): void {
+    throw new Error("Method not implemented.");
+  }
+
+  getValue(): any {
+    throw new Error("Method not implemented.");
+  }
+
+  updateValue(value: any): any {
+    throw new Error("Method not implemented.");
+  }
+
+  registerAction(action: string, callback: (node: IFosInstance<T>) => Promise<IFosInstance<T>>): void {
+    throw new Error("Method not implemented.");
+  }
+
+  doAction(action: string): Promise<IFosInstance<T>> {
+    throw new Error("Method not implemented.");
+  }
 
 }
 
-export const Fos = (options?: FosOptions) => new FosInstance(options)
+export const Fos = (options?: FosOptions) => {
+  const fos = new FosInstance(options)
+  
+  return fos
+}
 
 export type {
     IStore,

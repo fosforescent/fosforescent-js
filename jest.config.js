@@ -14,7 +14,6 @@ const customJestConfig = {
   moduleNameMapper: {
     '\\.(less|scss)$': 'identity-obj-proxy',
     '\\.(css)$': 'jest-css-modules',
-    "@/(.*)": "<rootDir>/src/$1",
   },
 }
 module.exports = customJestConfig

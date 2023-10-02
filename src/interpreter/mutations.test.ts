@@ -8,10 +8,8 @@ describe('mutations', () => {
 
 
   test.skip('can create task', () => {    
-    const fos = Fos()
 
-  //   const interpreter = fos.startTransaction()
-
+    console.log('test empty')
 
 
   //   const children = fos.query()

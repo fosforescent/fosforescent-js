@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "./dist/",
     "types": [
       "jest",
       "node"
@@ -27,13 +28,10 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true,
     "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
+ 
     "strictNullChecks": true
   },
+
   "include": [
     "**/*.ts",
     "**/*.tsx",

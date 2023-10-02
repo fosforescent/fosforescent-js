@@ -1,0 +1,32 @@
+{
+  "nodes": {
+    "io": {
+      "value": 0
+    },
+    "string": {
+      "value": 1
+    },
+    "string1": {
+      "value": 2
+    },
+    "show-string": {
+      "io.show": "string"
+    },
+    "previousRoot": {
+      "value": 13412414
+    }
+  },
+  "todos":{
+    "show-string": "string1",
+    "string": "string1"
+  },
+  "calculations": {
+    "string": {
+      "string1": 2
+    },
+    "io.get": {
+      "previousRoot": 2
+    }
+  }
+}
+

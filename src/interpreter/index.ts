@@ -5,7 +5,7 @@ import { assert } from '../util'
 // import { createTaskStateMachine, createOneOfStateMachine } from "./state-machines"
 // import { Interpreter, interpret } from "xstate"
 import StringClient from "../client/string-client";
-import { constructAliases, getAllOfNode, getTerminalNode, getUnitNode, getNameNode } from "@/dag-implementation/primitive-node";
+import { constructAliases, getAllOfNode, getTerminalNode, getUnitNode, getNameNode } from "../dag-implementation/node-factory";
 
 
 
@@ -13,7 +13,15 @@ export class BaseFosInterpreter implements IFosInterpreter {
 
   committed: boolean = false
 
-  constructor(public store: IStore, public instruction: INode, public target: INode) {}
+  constructor(public store: IStore, public instruction: INode, public target: INode) {
+
+    /**
+     * TODO  
+     * - if target doesn't match instruction, create new target with instruction's "blank" value (first type constructor option)
+     * 
+     */
+
+  }
 
   getInstruction(): string  {
     return this.instruction.getAddress() 
@@ -36,7 +44,32 @@ export class BaseFosInterpreter implements IFosInterpreter {
     return this.target.getEdges().find((elem) => elem[0] === instruction && elem[1] === target)
   }
 
-  spawn(childInstruction: INode, childTarget: INode): [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]] {
+  parseInput(input: any): [IFosInterpreter, ...IFosInterpreter[]] {
+    /**
+     * - validate input, 
+     * create new target based on instruction's "blank" value (first type constructor option)
+     * 
+     * , merge existing target into it
+     */
+
+    const blankTarget = this.instruction.generateTarget(input)
+    console.log('blankTarget', blankTarget.getValue(), blankTarget.getAddress(), input)
+    const newTarget = this.target.merge(blankTarget)
+    const newStack = this.mutate(this.instruction, newTarget)
+    console.log('newStack', newStack.map((elem) => elem.getDisplayString()))
+    return newStack
+  }
+
+
+  spawn(childInstruction: INode, childTarget: INode, data?: any): [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]] {
+    if (!childTarget) {
+      if (data){
+        childTarget = childInstruction.generateTarget(data)
+      } else {
+        const terminalNode = getTerminalNode(this.store)
+        childTarget = terminalNode
+      }
+    }
 
     const newTarget = this.target.addEdge(childInstruction.getAddress(), childTarget.getAddress())
     
@@ -120,8 +153,9 @@ export class BaseFosInterpreter implements IFosInterpreter {
   }
 
   getBlank(instruction: INode): IFosInterpreter[] {
-    const terminalNode = getTerminalNode(this.store)
-    return this.spawn(instruction, terminalNode) 
+    throw new Error("Method not implemented.")
+    // const terminalNode = getTerminalNode(this.store)
+    // return this.spawn(instruction, terminalNode) 
   }
 
   removeEdge(instruction: string, target: string): IFosInterpreter[] {
@@ -167,6 +201,7 @@ export class BaseFosInterpreter implements IFosInterpreter {
 
   getValue<T>(): T{
     const isExternal = this.store.checkAddress(this.target.getAddress()) === NodeType.External
+    console.log("getValue", this.target.getAddress(), this.store.checkAddress(this.target.getAddress()), isExternal)
     assert(isExternal, `isExternal`)
     const value = this.store.getNodeByAddress(this.target.getAddress()).getValue()
     return value as T
@@ -331,11 +366,29 @@ export class BaseFosInterpreter implements IFosInterpreter {
 
   // }
  
-  mutate(newInstruction: INode, newTarget: INode): [IFosInterpreter, ...IFosInterpreter[]] {
+  mutate (instruction: INode, target: INode): [IFosInterpreter, ...IFosInterpreter[]] {
     throw new Error("Method not implemented.")
- }
+  }
 
+  getActions(): { [key: string]: INode; } {
+    throw new Error("Method not implemented.")
+  }
 
+  getAction(alias: string): INode {
+    throw new Error("Method not implemented.")
+  }
+
+  followEdgeFromAlias(alias: string): IFosInterpreter {
+    throw new Error("Method not implemented.")
+  }
+  
+  spawnFromAlias(alias: string): IFosInterpreter {
+    throw new Error("Method not implemented.")
+  }
+
+  addAction(alias: string, instruction: INode): [IFosInterpreter, ...IFosInterpreter[]] {
+    throw new Error("Method not implemented.")
+  }
 
 }
 
@@ -384,17 +437,6 @@ export class FosInterpreter extends BaseFosInterpreter implements IFosInterprete
     super(store, target, instruction)
   }
 
-  // async run(input: INode): Promise<IFosInterpreter> {
-  //   const func = this.instruction.asInstruction()
-  //   const [newInstruction, newTarget] = await func(this.target)
-  //   if (this.isDone()) {
-  //     const newInt = this.mutate(newInstruction, newTarget)[0]
-  //     return newInt
-  //   } else {
-  //     return this
-  //   }
-  // }
-  
 
   getStack(): [IFosInterpreter, ...IFosInterpreter[]] {
     const stack = [this, ...this.parent.getStack()] as [IFosInterpreter, ...IFosInterpreter[]]
@@ -406,6 +448,20 @@ export class FosInterpreter extends BaseFosInterpreter implements IFosInterprete
     return stack
   }
 
-  
+  mutate(newInstruction: INode, newTarget: INode): [IFosInterpreter, ...IFosInterpreter[]] {
+    // console.log('mutate', newInstruction.getAddress(), newTarget.getAddress(), this.getDisplayString())
+    // console.log('this parent', typeof this.parent, this.parent)
+    const newParentEdges = this.store.getNodeByAddress(this.parent.getTarget()).getEdges().map((elem) => elem[0] === this.instruction.getAddress() && elem[1] === this.target.getAddress() ? [newInstruction.getAddress(), newTarget.getAddress()] : elem)
+    const newParentTarget = this.store.create(newParentEdges)
+    const newParent = this.parent.mutate(this.store.getNodeByAddress(this.parent.getInstruction() as string), newParentTarget)[0]
+
+    const newInterpreter = new FosInterpreter(newTarget, newInstruction, this.store, newParent as IFosInterpreter)
+
+    const stack = newInterpreter.getStack() as [IFosInterpreter, IFosInterpreter, ...IFosInterpreter[]]
+    const [thisInterpreter, parentInterpreter, ...rest] = stack
+    const matchingChild = parentInterpreter.getChildren().filter((elem) => elem.getInstruction() === thisInterpreter.getInstruction() && elem.getTarget() === thisInterpreter.getTarget())
+    assert(matchingChild.length === 1, `matchingChild.length === 1 (mutate failing)`)
+    return stack
+  }
 }
 

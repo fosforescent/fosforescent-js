@@ -4,7 +4,7 @@ import { FosNode, NoContextNode } from './node'
 import { FosInterpreter, RootFosInterpreter } from "../interpreter"
 import { SHA256 } from 'crypto-js'
 
-import { getAllOfNode, getNameNode, getTerminalNode, getUnitNode } from './primitive-node'
+import { getAllOfNode, getNameNode, getTerminalNode, getUnitNode } from './node-factory'
 
 
 export enum NodeType {
@@ -187,7 +187,8 @@ export class Store implements IStore {
     // console.log('insert regular starting', edges)
     edges.forEach((edge, index) => {      
       // console.log('edge', edge)
-      assert(this.checkAddress(edge[0], false) !== NodeType.None, `node ${edge[0]} not found at index ${index}`)
+      // console.log("existing addresses", [...this.externalData.keys()], [...this.table.keys()])
+      assert(this.checkAddress(edge[0]) !== NodeType.None, `node ${edge[0]} not found at index ${index}`)
       assert(this.checkAddress(edge[1]) !== NodeType.None, `node ${edge[1]} not found at index ${index}`)
     })
     const address = this.hash(edges)
@@ -282,11 +283,13 @@ export class Store implements IStore {
     if(pattern.getAddress() === entry.getAddress()){
       return []
     }
+    // if(pattern.getAddress() === this.anythingAddress){
     if(pattern.getAddress() === this.unitAddress){
-      return [entry]
+      throw new Error('re-implement this with extension-defined wildcards')
+      // return [entry]
     }
     if(pattern.getAddress() === this.voidAddress){
-      throw new Error(`pattern expecte void --- pattern ${pattern} does not match entry ${entry}`, { cause: { patternFailed: true } })
+      throw new Error(`pattern expected void --- pattern ${pattern} does not match entry ${entry}`, { cause: { patternFailed: true } })
     }
     if(this.checkAddress(pattern.getAddress()) === NodeType.External || this.checkAddress(entry.getAddress()) === NodeType.External){
       throw new Error(`external mismatch --- pattern ${pattern} does not match entry ${entry}`, { cause: { patternFailed: true } })
