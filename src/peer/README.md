@@ -13,6 +13,7 @@ the resulting new hash is provided to the message sender, and a new root node pr
 one or more peers will then submit their proposed simplification of the expression, and the peers will arrive at which one to accept, if any via the consensus
 mechanism
 
+
 Switching out consensus mechanisms via the root node.
 ---
 
@@ -33,4 +34,16 @@ This message can be extracted via pattern matching against the received node, wi
 (3) there is an unknown node in the "previous root" field chain (divergent)
 
 
+Messaging:
+
+This discussion leaves out a few important details, one of them being: how do these edges get attached to a logical peer's root to begin with?  This is done through proposals by members of the logical peer. These members can either be physical peers, or they can be other logical peers, which would be equivalent to smart contracts in ethereum.  When a member proposes a new edge, the proposal is broadcast to the other members.  If they have any conflicts, those are added as "options".  This should clear the conflict and allow a consensus to be reached, however the users will then have to arrive at consensus on which option to choose in order for execution to continue. 
+
+Messaging is done via broadcast to all members of a logical peer. So for DM's a logical peer must be set up and joined by those 2 members.  Messaging is handled by the root node of these logical peers.  When a node matching a certain pattern is submitted to the logical peer's address, the target nodes of each edge in the root node are tested as patterns against the message.  The way this is represented in the graph is through creating a new root with a new edge inserted: 
+
+NewRoot:
+ ...
+ oldRoot: newEdge
+ ...
+
+In order for this message to come from outside the peer group, it must be forwarded through one of the peers in the group and proposed as a change.  This may simply be a logical peer which handles messaging, which would be referenced through some ID.  The logical 
 
