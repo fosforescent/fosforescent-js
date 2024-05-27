@@ -1,5 +1,5 @@
 import { getIdNode, getNothingNode, getAllOfNode, getTerminalNode } from "../dag-implementation/node-factory";
-import { IFosInterpreter, IStore, INode } from "../old";
+import { IFosInterpreter, IStore, INode } from "..";
 
     
 

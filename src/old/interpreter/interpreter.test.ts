@@ -1,8 +1,8 @@
-import { Fos } from '../old'
+import { Fos } from '..'
 import { FosNode } from '../dag-implementation/node'
 import { Store } from '../dag-implementation/store'
 import { FosInterpreter, RootFosInterpreter } from "."
-import { IFosInterpreter } from "../old/types" 
+import { IFosInterpreter } from "../types" 
 
 describe('interpreter basics', () => {
 

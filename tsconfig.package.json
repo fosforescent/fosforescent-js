@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "esnext",         // Compile to a modern ECMAScript version
+    "module": "esnext",         // Use ES modules
+    "jsx": "react-jsx",
+    "declaration": true,        // Generate corresponding '.d.ts' file(s)
+    "declarationDir": "./dist/types",  // Output directory for declaration files
+    "outDir": "./dist",         // Output directory for all emitted files
+    "emitDeclarationOnly": false, // Only emit declaration files (no JavaScript)
+    "strict": true,             // Enable all strict type-checking options
+    "esModuleInterop": true,    // Allows default imports from modules with no default export
+    "skipLibCheck": true,        // Skip type checking of declaration files (*.d.ts)
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+  },
+  "include": ["src/**/*"],       // Include all files in the src directory
+  "exclude": [
+    "node_modules",
+    "src/components/fos-old/**/*",
+    "src/fos/old/**/*",
+    "src/lib/old/**/*",
+    "src/main"
+  ]
+}

@@ -1,0 +1,12 @@
+import { IStore, INode } from "..";
+export declare const getTerminalNode: (store: IStore) => INode;
+export declare const getUnitNode: (store: IStore) => INode;
+export declare const getAllOfNode: (store: IStore) => INode;
+export declare const getIdNode: (store: IStore) => INode;
+export declare const getNothingNode: (store: IStore) => INode;
+export declare const getNameNode: (store: IStore) => INode;
+export declare const getNthDepNodeWithPattern: (store: IStore, n: number, pattern: INode) => void;
+export declare const getRootInstructionNode: (store: IStore) => void;
+export declare const getNthCommentInstructionNode: (store: IStore) => void;
+export declare const getWorkflowInstructionNode: (store: IStore) => void;
+export declare const constructAliases: (store: IStore) => [string, string][];

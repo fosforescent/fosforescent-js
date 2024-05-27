@@ -1,6 +1,6 @@
 import { Store } from '../dag-implementation/store'
-import { IFosInterpreter } from "../old/types" 
-import { Fos } from '../old'
+import { IFosInterpreter } from "../types" 
+import { Fos } from '..'
 
 // import { createTaskMutation } from './mutations'
 

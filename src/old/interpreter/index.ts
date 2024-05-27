@@ -1,6 +1,6 @@
 import { FosNode, NoContextNode } from "../dag-implementation/node";
 import { Store, NodeType } from "../dag-implementation/store";
-import { INode, NodeStatus, NodeStateSchema, NodeEvents, IFosInterpreter, IStore } from '../old/types'
+import { INode, NodeStatus, NodeStateSchema, NodeEvents, IFosInterpreter, IStore } from '../types'
 import { assert } from '../util'
 // import { createTaskStateMachine, createOneOfStateMachine } from "./state-machines"
 // import { Interpreter, interpret } from "xstate"
