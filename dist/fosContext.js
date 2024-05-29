@@ -39,6 +39,9 @@ export class FosContext {
         this.updateData(newData);
         return new FosContext(newData, this.updateData);
     }
+    update() {
+        this.updateData(this.data);
+    }
     getNode(route) {
         const node = new FosNode(this, route);
         return node;

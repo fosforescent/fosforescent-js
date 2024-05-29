@@ -11,6 +11,7 @@ export declare class FosContext {
     }, newTrail?: FosTrail): FosContext;
     setTrail(newTrail: FosTrail): FosContext;
     setFocus(newRoute: FosRoute, char: number): FosContext;
+    update(): void;
     getNode(route: FosRoute): FosNode;
     setNode(node: FosNode, nodeData: FosNodeData): FosContext;
     insertNode(nodeData: FosNodeData, route: FosRoute, index?: number): [FosContext, string];
