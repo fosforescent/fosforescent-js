@@ -3,7 +3,7 @@ import { FosNodeData, FosNodeContent, FosContextData, FosRoute, FosTrail, FosNod
 
 import { FosNode } from './fosNode'
 import { FosPeer, IFosPeer } from './fosPeer'
-import { Fos } from './old'
+
 
 export class FosContext {
 

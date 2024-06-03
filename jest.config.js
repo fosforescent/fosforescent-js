@@ -15,5 +15,6 @@ const customJestConfig = {
     '\\.(less|scss)$': 'identity-obj-proxy',
     '\\.(css)$': 'jest-css-modules',
   },
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
 }
 module.exports = customJestConfig
