@@ -1,5 +1,6 @@
 import { FosNode } from './fosNode';
 import { FosContext } from './fosContext';
+import { FosPeer, IFosPeer } from './fosPeer';
 
 import { 
   FosContextData, 
@@ -21,11 +22,13 @@ export type {
   FosPath,
   FosTrail,
   FosNodesData,
-  SelectionPath
+  SelectionPath, 
+  IFosPeer
 }
 
 
 export {
   FosNode,
-  FosContext
+  FosContext,
+  FosPeer
 }

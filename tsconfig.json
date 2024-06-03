@@ -29,18 +29,20 @@
     "noImplicitAny": true,
     "baseUrl": ".",
  
-    "strictNullChecks": true
-  },
+    "strictNullChecks": true,
+    "rootDir": "./src",
 
+  },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "declarations.d.ts",
     "lib/**/*.d.ts",
     "lib/dnd/multi-backend.js"  
-, "../vite.config.ts"  ],
+, "../vite.config.ts"],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ], 
   "outDir": "./dist"
 }

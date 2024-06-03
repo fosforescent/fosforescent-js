@@ -1,6 +1,8 @@
 
 import { FosNodeData, FosNodeContent, FosContextData, FosRoute, FosTrail, FosNodesData, FosPath, SelectionPath } from '.'
 import { FosContext } from './fosContext'
+import { FosPeer, IFosPeer } from './fosPeer'
+
 
 import { diffChars, diffArrays, ArrayChange, Change } from 'diff'
 import _ from 'lodash'
@@ -724,6 +726,28 @@ export class FosNode {
     // }
     return nodeContent.data || {}
   }
+
+
+  addPeer(peer: FosPeer, trail: FosRoute){
+    this.context.peers.push(peer)
+  }
+
+  removePeer(peer: IFosPeer, trail: FosRoute){
+    this.context.peers = this.context.peers.filter((p) => p !== peer)
+  }
+
+  async pullFromPeer(peer: IFosPeer){
+    const newData = await peer.pullFromPeer()
+    if (newData){
+      this.context.updateData(newData)
+    }
+  }
+
+
+  async pushToPeer(peer: IFosPeer){
+    const newData = await peer.pushToPeer({ ...this.context.data, trail: this.getRoute() })
+  }
+
 
 
 }

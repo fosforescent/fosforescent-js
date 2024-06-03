@@ -1,0 +1,45 @@
+name: Package Viridian React
+on: 
+  push:
+    branches: [ main ]
+    paths:
+      - 'fosforescent-js/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with: 
+          submodules: true
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'  # Specify the Node.js version
+          registry-url: 'https://registry.npmjs.org/'
+
+
+      - name: Install dependencies
+        run:  make setup
+
+
+
+      - name: Build package 
+        run: make build
+
+
+      - name: Set token for npm
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+     
+
+      - name: Publish to npm
+        run: make publish
+

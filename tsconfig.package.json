@@ -24,6 +24,7 @@
     "src/components/fos-old/**/*",
     "src/fos/old/**/*",
     "src/lib/old/**/*",
-    "src/main"
+    "src/main",
+    "dist"
   ]
 }

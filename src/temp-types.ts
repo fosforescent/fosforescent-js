@@ -1,6 +1,7 @@
 
 import { FosContext } from './fosContext';
 import { FosNode } from './fosNode';
+import { FosPeer, IFosPeer } from './fosPeer';
 
 export type FosNodeContent = {
   description: string;
@@ -42,7 +43,11 @@ export type SelectionPath = {
   [key: number]: SelectionPath[]
 }
 
+export type NodeAddress = string
+export type ContentId = string
+export type NodeId  = NodeAddress | ContentId
 
+export type RouteElement = [NodeId, NodeId] 
 
 export type FosTrail = [[string, string], ...[string, string][]]
 export type FosPath = [string, string][]
@@ -60,8 +65,12 @@ export type FosContextData = {
   previousHash: string
 }
 
+export type {
+  IFosPeer
+}
 
 export {
   FosContext,
-  FosNode
+  FosNode,
+  FosPeer
 }

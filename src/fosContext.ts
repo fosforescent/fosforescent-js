@@ -2,17 +2,28 @@
 import { FosNodeData, FosNodeContent, FosContextData, FosRoute, FosTrail, FosNodesData, FosPath } from '.'
 
 import { FosNode } from './fosNode'
+import { FosPeer, IFosPeer } from './fosPeer'
+import { Fos } from './old'
 
 export class FosContext {
 
   locked = false
+  peers: FosPeer[] = []
 
-  constructor(public data: FosContextData, public updateData: (data: FosContextData) => void) {
+  constructor(public data: FosContextData) {
     if (!data.nodes){
       console.log('FosContext - no nodes', data)
       throw new Error('no nodes')
     }
   }
+
+  updateData(data: FosContextData){
+    for (const peer of this.peers){
+      peer.pushToPeer(data)
+    }
+    this.data = data
+  }
+
 
   setNodes(newNodes: FosNodesData, newFocus?: { route: FosRoute, char: number }, newTrail?: FosTrail) {
     if (!this.data.nodes){
@@ -28,7 +39,7 @@ export class FosContext {
     }
     // console.log('setNodes - beforeUpdate', newData);
     this.locked = true
-    const contextToReturn = new FosContext(newData, this.updateData)
+    const contextToReturn = new FosContext(newData)
     this.updateData(newData)
     this.locked = false
     return contextToReturn
@@ -37,13 +48,13 @@ export class FosContext {
   setTrail(newTrail: FosTrail) {
     const newData = {...this.data, trail: newTrail}
     this.updateData(newData)
-    return new FosContext(newData, this.updateData)
+    return new FosContext(newData)
   }
 
   setFocus(newRoute: FosRoute, char: number) {
     const newData = {...this.data, focus: { route: newRoute, char } }
     this.updateData(newData)
-    return new FosContext(newData, this.updateData)
+    return new FosContext(newData)
   }
 
   update(){
@@ -481,6 +492,25 @@ export class FosContext {
 
   }
 
-  
+  getRootRoute(): FosRoute {
+    return [['root', 'root']]
+  }
+
+  addPeer(peer: FosPeer){
+    const rootNode = this.getNode(this.getRootRoute())
+    const result = rootNode.addPeer(peer, rootNode.getRoute())
+  }
+
+  async pullFromPeer(peer: IFosPeer) {
+    const rootNode = this.getNode(this.getRootRoute())
+    return await rootNode.pullFromPeer(peer)
+  }
+
+  async pushToPeer(peer: IFosPeer) {
+    const rootNode = this.getNode(this.getRootRoute())
+    return await rootNode.pushToPeer(peer)
+  }
 
 }
+
+
