@@ -1,9 +1,7 @@
-name: Package Viridian React
+name: Package Fosforescent JS
 on: 
   push:
     branches: [ main ]
-    paths:
-      - 'fosforescent-js/**'
   workflow_dispatch:
 
 jobs:
