@@ -1,7 +1,6 @@
 {
   "name": "@fosforescent/fosforescent-js",
-  "version": "1.0.0",
-  "scope": "@fosforescent",
+  "version": "1.0.1",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
