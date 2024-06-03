@@ -4,6 +4,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
+  "scope": "@fosforescent",
   "description": "",
   "scripts": {
     "start": "npx tsx src/cli/repl.ts",
