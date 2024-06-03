@@ -1,16 +1,16 @@
 {
   "name": "@fosforescent/fosforescent-js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
-  "scope": "@fosforescent",
   "description": "",
   "scripts": {
     "start": "npx tsx src/cli/repl.ts",
     "test": "npx jest",
     "build": "npx tsc -p tsconfig.package.json",
-    "test:ci": "npx jest --ci --verbose --maxWorkers=2"
+    "test:ci": "npx jest --ci --verbose --maxWorkers=2",
+    "prepublish": "npm run build"
   },
   "author": "",
   "license": "ISC",

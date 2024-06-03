@@ -28,8 +28,6 @@ jobs:
       - name: Install dependencies
         run:  make setup
 
-
-
       - name: Build package 
         run: make build
 
@@ -45,3 +43,4 @@ jobs:
         run: make publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
