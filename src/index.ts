@@ -1,34 +1,40 @@
-import { FosNode } from './fosNode';
+import { FosNodeBase } from './fosNodeBase';
 import { FosContext } from './fosContext';
 import { FosPeer, IFosPeer } from './fosPeer';
 
+import { defaultContext } from './initialNodes'
+
 import { 
   FosContextData, 
-  FosNodeData, 
+  // FosNodeData, 
   FosNodesData, 
   FosRoute,
   FosNodeContent,
   FosPath,
   FosTrail,
-  SelectionPath
+  SelectionPath,
+  IFosNode
  }  from './temp-types';
 
 
 export type {
   FosContextData,
   FosNodeContent,
-  FosNodeData,
+  // FosNodeData,
   FosRoute,
   FosPath,
   FosTrail,
   FosNodesData,
   SelectionPath, 
-  IFosPeer
+  IFosPeer,
+  IFosNode
+
 }
 
 
 export {
-  FosNode,
+  defaultContext,
+  FosNodeBase,
   FosContext,
-  FosPeer
+  FosPeer,
 }
