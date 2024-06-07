@@ -2,7 +2,7 @@ import { FosNodeBase } from './fosNodeBase';
 import { FosContext } from './fosContext';
 import { FosPeer, IFosPeer } from './fosPeer';
 
-import { defaultContext } from './initialNodes'
+import { defaultContext } from '../initialNodes'
 
 import { 
   FosContextData, 

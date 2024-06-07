@@ -1,5 +1,5 @@
 
-import { FosContextData, FosNodesData, FosTrail } from "./temp-types";
+import { FosContextData, FosNodesData, FosTrail } from "./fosforescent/temp-types";
 
 
 

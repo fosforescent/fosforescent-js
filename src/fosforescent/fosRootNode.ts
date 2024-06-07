@@ -4,7 +4,6 @@ import { FosContext } from './fosContext'
 import { FosPeer, IFosPeer } from './fosPeer'
 
 
-import { diffChars, diffArrays, ArrayChange, Change } from 'diff'
 import _ from 'lodash'
 
 import { FosNodeBase } from './fosNodeBase'

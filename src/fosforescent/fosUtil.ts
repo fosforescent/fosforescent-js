@@ -3,7 +3,7 @@
 import {  FosNodeContent, FosRoute, FosTrail, FosNodesData } from '.';
 import { FosContext } from './fosContext';
 import { FosNodeBase, IFosNode } from './fosNodeBase';
-import { diffChars, diffArrays, ArrayChange, Change } from 'diff';
+// import { diffChars, diffArrays, ArrayChange, Change } from 'diff';
 
 
 // export function getChildren(context: FosContext, route: FosRoute, index?: number): IFosNode[] {
