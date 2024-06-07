@@ -1,6 +1,6 @@
 
-import {FosNodeContent, FosContextData, FosRoute, FosTrail, FosNodesData, FosPath, SelectionPath } from '.'
-import { FosContext } from './fosContext'
+import { FosNodeContent, FosNodeId, FosRoute, SelectionPath, FosContextData, RouteElement, FosDataContent } from './temp-types'
+
 import { FosPeer, IFosPeer } from './fosPeer'
 
 
@@ -12,125 +12,137 @@ type OptionIndex = number
 
 
 
-export interface INodeMin {
+export interface INodeMin<T extends INodeMin<T>> {
   // createChild: (edgeData: S, node: TrellisNodeClass<T, S>) => void
   // removeChild: (edge: TrellisEdgeClass<T, S>, node: TrellisNodeClass<T, S>) => void
-  setChildren: (children: INodeMin) => void
-  getChildren: () => INodeMin[]
+  setChildren: (children: T[]) => void
+  getChildren: () => T[]
   getId: () => string
-  newChild: () => INodeMin
+  newChild: () => T
   getString: () => string
   setString: (string: string) => void
-  getParent: () => INodeMin | null
+  getParent: () => T | null
 
 }
 
 
-export interface IFosNode{
-  getNodeId(): string
+export interface IFosNode extends INodeMin<IFosNode> {
+  getId(): string
   getNodeType(): string
   getRoute(): FosRoute
-  getNodeContent(): FosNodeContent
-  setNodeContent(newData: FosNodeContent): FosContext
-  getAncestors(nthGen: number): [[IFosNode, number], ...[IFosNode, number][]]
-  getParent(): IFosNode
+  getAncestors(nthGen: number): [IFosNode, number][]
+  getParent(): IFosNode | null
   getChild([type, id]: [string, string]): IFosNode
   getChildren(): IFosNode[]
   addPeer(peer: IFosPeer): Promise<void>
-  pullFromPeer(peer: IFosPeer): Promise<FosContext>
+  pullFromPeer(peer: IFosPeer): Promise<void>
   pushToPeer(peer: IFosPeer): Promise<void>
-  deleteRow(rowIndex:number): FosContext
+  deleteRow(rowIndex:number): void
   // getUpNode(): IFosNode
   // getDownNode(): IFosNode
-  focusNode(charpos?: number): FosContext
-  setChildren(children: IFosNode[]): FosContext
-  getId(): string
+  focusNode(charpos?: number): void
+  setChildren(children: IFosNode[]): void
+  // newChild(type: FosNodeId): IFosNode
   newChild(): IFosNode
   getString(): string
-  setString(newString: string): FosContext
+  setString(newString: string): void
+  serializeData(): Promise<FosContextData>
 }
-
-
 
 
 export class FosNodeBase implements IFosNode {
 
-  activeOptionIndex: number | null = null
-  activeRowIndex: number | null = null
   peers: IFosPeer[] = []
+  data: FosDataContent; 
+  children: IFosNode[] = []
+  zoomedIn: boolean = false
+  focused: boolean = false
 
-  constructor(public context: FosContext, public route: FosRoute) {}
+  constructor(context: FosContextData, private parent: FosNodeBase | null, private id: FosNodeId, private type: FosNodeId) {
+    this.data = context.nodes[this.id].data
+    this.init(context)
+  }
 
+  init(context: FosContextData) {
+    const content: FosNodeContent = context.nodes[this.id]
+    if (!content){
+      throw new Error(`no node options entry for ${this.id}`)
+    }
+    this.data = content.data
+
+    if (context.trail){
+      this.zoomedIn = true
+    }
+
+    if (context.focus){
+      this.focused = true
+    }
+
+
+    this.children = content.content.map(([type, id]: [string, string]) => {
+
+      const updatedContext = {
+        nodes: {
+          ...context.nodes,
+         },
+        trail: context.trail ? context.trail.slice(1) : null,
+        focus: context.focus ? {
+          route: context.focus.route.slice(1),
+          char: context.focus.char
+        } : null
+      }
+
+      delete updatedContext.nodes[this.id]
+
+      return new FosNodeBase(updatedContext, this, id, type)
+    })
+  }
 
   getNodeId() {
-    const [left, right] = this.route[this.route.length - 1] as [string, string]
-    const nodeId = right
-    return nodeId
+    return this.id
   }
 
   getNodeType() {
-    const [left, right] = this.route[this.route.length - 1] as [string, string]
-    const nodeType = left
-    return nodeType
+    return this.type
   }
 
   getId() {
-    return `${this.getNodeType()}-${this.getNodeId()}`
+    return `${this.getNodeId()}`
+  }
+
+  getRouteElem(): RouteElement {
+    return [this.getNodeType(), this.getId()]
   }
 
   getRoute() {
-    return this.route
-  }
-
-  getNodeContent() {
-    const nodeId = this.getNodeId()
-
-    // console.log('getNodeData', nodeId, this.context)
-    const data = this.context.data.nodes[nodeId]
-    if (!data) {
-      throw new Error(`no node options entry for ${nodeId}`)
+    const helper = (node: FosNodeBase): FosRoute => {
+      if (node.parent) {
+        return [...helper(node.parent), node.getRouteElem()]
+      } else {
+        return [this.getRouteElem()]
+      }
     }
-    return data
-  }
-
-  setNodeContent(newData: FosNodeContent): FosContext {
-    // console.log('setNodeData', newData);
-
-
-    return this.context.setNode(this, newData)
+    return helper(this)
   }
 
 
-  updateNodeData(newData: FosNodeContent) {
-    const nodeId = this.getNodeId()
-    return this.context.setNode(this, newData)
+  updateNodeData(newData: FosNodeContent): void {
+    this.data = _.merge(this.data, newData)
   }
   
   getChildren(): IFosNode[] {
-    const nodeContent = this.getNodeContent()
-    const childEntries: FosNodeContent["content"] = nodeContent.content
-    const children = childEntries.map(([type, id]: [string, string]) => {
-      const newRoute = this.route.concat([[type, id]]) as FosRoute
-      if (type === 'task') {
-        return this.context.getNode(newRoute)
-      } else {
-        throw new Error(`unknown type ${type}`)
-      }
-    });
-    return children
+    return this.children
   }
 
   setChildren(children: IFosNode[]) {
-    const newContent = children.map((child: IFosNode) => {
-      return [child.getNodeType(), child.getNodeId()]
-    }) as FosNodeContent["content"]
-    const newNodeContent = {
-      ...this.getNodeContent(),
-      content: newContent
-    }
-    return this.setNodeContent(newNodeContent)
+    this.children = children
   }
 
+  newId(): FosNodeId {
+    return crypto.randomUUID()
+  }
+
+  // newChild(type: FosNodeId): IFosNode {
   newChild(): IFosNode {
     const newContent: FosNodeContent = {
       data: {
@@ -140,14 +152,29 @@ export class FosNodeBase implements IFosNode {
       },
       content: []
     }
-    const [newNode, newCtx] = this.addChildToNode(newContent, 'task')
+    const newId = this.newId();
+    const newNode = new FosNodeBase({
+      nodes: {
+        [newId]: newContent
+      },
+      trail: [],
+      focus: {
+        route: [],
+        char: 0
+      }
+    }, this, newId, "task")
+
+
+    this.children.push(newNode)
+    
+    
     return newNode
   }
 
   getChild([type, id]: [string, string]): IFosNode {
     const children = this.getChildren()
     const child = children.find((child: IFosNode) => {
-      return child.getNodeId() === id && child.getNodeType() === type
+      return child.getId() === id && child.getNodeType() === type
     })
     if (!child) {
       throw new Error(`no child found for ${type} ${id}`)
@@ -157,95 +184,64 @@ export class FosNodeBase implements IFosNode {
 
 
   isChildOf(parent: IFosNode) {
-    const thisRoute = this.route
-    const parentRoute: FosRoute = parent.getRoute()
-    const isParent = parentRoute.every(([type, id]: [string, string], index: number) => {
-      return type == thisRoute[index]?.[0] && id == thisRoute[index]?.[1]
+    const thisChild = this.parent?.getChildren().find((child: IFosNode) => {
+      return child.getId() === this.getId() && child.getNodeType() === this.getNodeType()
     })
     // console.log('isChildOf', parentRoute, thisRoute, isParent)
-    return isParent
+    return !!thisChild
   }
 
   
 
-  getAncestors(nthGen: number): [[IFosNode, number], ...[IFosNode, number][]] {
-    if (nthGen > this.route.length || nthGen < 1) {
-      throw new Error(`node does not have ${nthGen} ancestors`);
-    }
-    if (nthGen === 1){
-      const newRoute = this.route.slice(0, this.route.length - nthGen) as FosRoute
+  getAncestors(): [IFosNode, number][] {
+    const helper = (node: IFosNode, acc: [IFosNode, number][]): [IFosNode, number][] => {
+      const nodeParent = node.getParent()
+      if (nodeParent) {
 
-      const parentNode = this.context.getNode(newRoute)
-      
-      let currentNodeChildIndex: number | null = null;
- 
-      parentNode.getChildren().forEach((child: IFosNode, index: number) => {
-        if (child.getNodeId() === this.getNodeId()  && child.getNodeType() === this.getNodeType()){
-          currentNodeChildIndex = index
-        }
-      })
-  
-      if (currentNodeChildIndex === null) {
-        throw new Error(`could not find child in parent`)
+        const newEntry: [IFosNode, number] = [nodeParent, nodeParent.getChildren().findIndex((child: IFosNode) => {
+          return child.getId() === node.getId() && child.getNodeType() === node.getNodeType()
+        })]
+
+        return helper(nodeParent, [...acc, newEntry])
+      } else {
+        return acc
       }
-
-      return [[parentNode, currentNodeChildIndex]]
-    } else {
-      const [parent, childIndex]: [IFosNode, number] = this.getAncestors(1)[0]
-      return [[parent, childIndex], ...parent.getAncestors(nthGen - 1)]
     }
-
+    const result: [IFosNode, number][] =  helper(this, [])
+    return result
   }
   
-  getParent(): IFosNode {
-    return this.getAncestors(1)[0][0]
+  getParent(): IFosNode | null {
+    return this.parent
   }
 
 
 
   deleteRow(rowIndex:number) {
-    const nodeContent = this.getNodeContent()
-    const newContent = nodeContent.content.slice(0, rowIndex).concat(nodeContent.content.slice(rowIndex + 1))
-    const newNodeContent = {
-      ...nodeContent,
-      content: newContent
-    }
-    return this.setNodeContent(newNodeContent)
+    this.children = this.children.filter((child, i) => i !== rowIndex)
   }
 
   delete() {
-    const [parentNode, childIndex] = this.getAncestors(1)[0]
+    const [parentNode, childIndex] = this.getAncestors()[0]
     parentNode.deleteRow(childIndex)
   }
 
 
   setData(data: Partial<FosNodeContent["data"]>) {
-    const nodeContent = this.getNodeContent()
-    const newNodeContent = {
-      ...nodeContent,
-      data: {
-        ...nodeContent.data,
-        ...data
-      }
+    this.data = {
+      ...this.data,
+      ...data
     }
-    return this.setNodeContent(newNodeContent)
-    
   }
 
   getData() {
-    const nodeContent = this.getNodeContent()
-    return nodeContent.data
+    return this.data
   }
 
-  addChildToNode (childContent: FosNodeContent, childType: string): [IFosNode, FosContext]{
-    const [newCtx, insertedNodeId] = this.context.insertNode(childContent)
-    const newThisNode = newCtx.getNode(this.getRoute())
-    const nodeContent = newThisNode.getNodeContent()
-    const newContent: FosNodeContent["content"] = [...nodeContent.content, [childType, insertedNodeId]]
-    const finalContext = newThisNode.setNodeContent({ ... nodeContent, content: newContent })
-    const finalNode = finalContext.getNode(this.getRoute())
-    return [finalNode, finalContext]
+  getRelativeTrail() {
+        
   }
+
 
 
   async addPeer(peer: FosPeer): Promise<void> {
@@ -258,56 +254,86 @@ export class FosNodeBase implements IFosNode {
     this.peers = this.peers.filter((p) => p !== peer)
   }
 
-  async pullFromPeer(peer: IFosPeer): Promise<FosContext> {
+  async pullFromPeer(peer: IFosPeer): Promise<void> {
     const thisPeer = this.peers.filter((p) => p === peer)
     if (thisPeer.length === 0){
       throw new Error('peer not found')
     }else{
       const peerCtxData = await peer.pullFromPeer()
       if (!peerCtxData){
-        return this.context
+        return
       }
-      const peerCtx = new FosContext(peerCtxData)
-      const peerNode = peerCtx.getNode(this.getRoute())
-      const newCtx = this.setNodeContent(peerNode.getNodeContent())
-      return newCtx
+      this.deserializeData(peerCtxData)
+      return
     }
   }
 
   async pushToPeer(peer: IFosPeer){
-    const newData = await peer.pushToPeer({ ...this.context.data, trail: this.getRoute() })
+    const serializedData = await this.serializeData()
+    await peer.pushToPeer(serializedData)
+    return
   }
 
+  async serializeData(): Promise<FosContextData> {
+    const thisContent = {
+      data: this.data,
+      content: this.children.map((child: IFosNode) => {
+        return [child.getNodeType(), child.getId()]
+      })
+    }
+    const childrenDatas = await Promise.all(this.children.map((child: IFosNode) => {
+      return child.serializeData()
+    }))
 
+    const zoomedChild = childrenDatas.find((childData) => { 
+      return childData.trail && childData.trail.length > 0
+    })
+    
+    const focusedChild = childrenDatas.find((childData) => {
+      return childData.focus && childData.focus.route.length > 0
+    })
 
-  focusNode(charpos?: number): FosContext {
+    const thisTrail = this.zoomedIn ? [this.getRouteElem(), ...(zoomedChild?.trail || [])] : null
+
+    const thisFocus = this.focused ? { 
+        route: [this.getRouteElem(), ...(focusedChild?.focus?.route || [])],
+        char: focusedChild?.focus?.char || 0
+      }: null
+
+    return {
+      nodes: {
+        [this.getId()]: thisContent,
+        ...childrenDatas.reduce((acc, childData) => {
+          return {
+            ...acc,
+            ...childData.nodes
+          }
+        }, {})
+      },
+      trail: thisTrail,
+      focus: thisFocus
+    }
+
+  } 
+
+  async deserializeData(data: FosContextData): Promise<void> {
+    this.init(data)
+  }
+
+  focusNode(charpos?: number) {
     throw new Error('Method not implemented.')
   }
 
   
 
-  moveFocusUp(charpos?: number) {
-    const upNode = this.getUpNode()
-    const newCtx = upNode.focusNode(charpos)
-    return newCtx
-  }
-
-  moveFocusDown(ignoreChildren = false) {
-    const downNode = this.getDownNode()
-    const newCtx = downNode.focusNode()
-    return newCtx
-  }
 
   getString(){
-    return this.getNodeContent().data.description?.content || ""
+    return this.data.description?.content || ""
   }
 
   setString(newString: string){
-    const content = this.getNodeContent()
     return this.setData({
-      ...content.data,
       description: {
-        ...content.data.description,
         content: newString
       }
     })
@@ -315,7 +341,7 @@ export class FosNodeBase implements IFosNode {
 
 
 
-  setPath(selectionPath: SelectionPath): FosContext {
+  setPath(selectionPath: SelectionPath) {
 
     throw new Error('not implemented')
     // const newContext = Object.keys(selectionPath).reduce((accOuter, key, index) => {
@@ -400,15 +426,20 @@ export class FosNodeBase implements IFosNode {
     // return newContext
   }
 
-  getUpNode(): IFosNode {
-    throw new Error('Method not implemented.')
-  } 
+}
 
-  getDownNode(): IFosNode {
-    throw new Error('Method not implemented.')
+
+
+
+
+
+export class FosRootNode extends FosNodeBase {
+
+  constructor(contextData: FosContextData, id: FosNodeId, left: FosNodeId) {
+    super(contextData, null, id, left)
   }
 
-
+  
 
 }
 

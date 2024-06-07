@@ -1,8 +1,7 @@
 
-import { FosContext } from './fosContext';
-import { FosNodeBase } from './fosNodeBase';
 import { FosPeer, IFosPeer } from './fosPeer';
 import { IFosNode } from './fosNodeBase';
+import { identity } from 'lodash';
 
 export type FosDataContent = {
   duration?: {
@@ -41,6 +40,7 @@ export type FosDataContent = {
   description?: {
     content: string;
   }
+
   todo?: {
     completed: boolean;
     notes: string;
@@ -72,9 +72,12 @@ export type SelectionPath = {
 
 export type NodeAddress = string
 export type ContentId = string
-export type NodeId  = NodeAddress | ContentId
+export type FosNodeId  = NodeAddress | ContentId
 
-export type RouteElement = [NodeId, NodeId] 
+export type RouteElement = [FosNodeId, FosNodeId] 
+
+
+
 
 export type FosTrail = [[string, string], ...[string, string][]]
 export type FosPath = [string, string][]
@@ -84,12 +87,11 @@ export type FosNodesData = { [key: string]: FosNodeContent }
 
 export type FosContextData = { 
   nodes: FosNodesData,
-  trail: FosTrail,
+  trail: FosPath | null,
   focus: {
-    route: FosRoute,
+    route: FosPath,
     char: number
-  },
-  previousHash: string
+  } | null,
 }
 
 export type {
@@ -98,7 +100,5 @@ export type {
 }
 
 export {
-  FosContext,
-  FosNodeBase,
   FosPeer,
 }

@@ -40,7 +40,14 @@ export default defineConfig(() => {
         //     fileURLToPath(new URL(file, import.meta.url))
         //   ])
         // ),
+        build: {
+          sourcemap: true,
+        },
         output: {
+          sourcemap: true,
+          build: {
+            sourcemap: true,
+          },
           // inlineDynamicImports: false,
           // assetFileNames: 'assets/[name][extname]',
           // entryFileNames: '[name].js',

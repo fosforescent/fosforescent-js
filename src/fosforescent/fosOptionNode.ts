@@ -1,7 +1,5 @@
 
-import { FosNodeContent, FosContextData, FosRoute, FosTrail, FosNodesData, FosPath, SelectionPath } from '.'
-import { FosContext } from './fosContext'
-import { FosPeer, IFosPeer } from './fosPeer'
+import { FosNodeContent, FosContextData, FosRoute, FosTrail, FosNodesData, FosPath, SelectionPath, FosNodeId } from './temp-types'
 
 
 import _ from 'lodash'
@@ -14,19 +12,22 @@ type OptionIndex = number
 
 export class FosOptionNode extends FosNodeBase {
 
-  activeOptionIndex: number | null = null
-  activeRowIndex: number | null = null
+  
 
-  constructor(public context: FosContext, public route: FosRoute) {
-    super(context, route)
+  constructor(context: FosContextData, parent: FosNodeBase | null, id: FosNodeId) {
+    super(context, parent, id, "option")
   }
 
-  
+  getSelectedOption() {
+    const data = this.getData()
+    return data.option?.selectedIndex || 0
+  }
+
   getSelectionPath() {
 
   }
 
-  setSelectionPath(selectionPath: SelectionPath): FosContext {
+  setSelectionPath(selectionPath: SelectionPath) {
     throw new Error('not implemented')
     // const newContext = Object.keys(selectionPath).reduce((accOuter, key, index) => {
 

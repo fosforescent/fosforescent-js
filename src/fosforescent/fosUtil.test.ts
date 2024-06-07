@@ -1,7 +1,7 @@
 // import { nodeReduce } from './fosUtil'; // adjust the path as necessary
-import { FosContext } from './fosContext';
 
-import { FosNodeContent, FosContextData } from '.';
+
+import { FosNodeContent, FosContextData } from './temp-types';
 // Sample data
 // const contextData: FosContextData = {
 //   nodes: {
@@ -64,7 +64,7 @@ import { FosNodeContent, FosContextData } from '.';
 // };
 
 // Helper function to create FosContext
-const createContext = (data: FosContextData): FosContext => new FosContext(data);
+// const createContext = (data: FosContextData): FosContext => new FosContext(data);
 
 // Sample reducer functions
 // const aggOr = (acc: number, item: FosNodeContent): number => acc + (item.data?.duration?.marginal || 0);
