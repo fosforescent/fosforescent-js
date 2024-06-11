@@ -1,7 +1,6 @@
 
 import { FosPeer, IFosPeer } from './fosPeer';
 import { IFosNode } from './fosNodeBase';
-import { identity } from 'lodash';
 
 export type FosDataContent = {
   duration?: {

@@ -19,7 +19,7 @@ export default defineConfig(() => {
     build: {
       copyPublicDir: false,
       lib: {
-        entry: resolve(__dirname, 'src/fosforescent/index.ts'),
+        entry: resolve(__dirname, 'src/index.ts'),
         name: 'Fosforescent',
         // the proper extensions will be added
         fileName: 'fosforescent',
@@ -44,7 +44,6 @@ export default defineConfig(() => {
           sourcemap: true,
         },
         output: {
-          sourcemap: true,
           build: {
             sourcemap: true,
           },

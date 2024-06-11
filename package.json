@@ -9,10 +9,10 @@
     ".": {
       "import": "./dist/fosforescent.js",
       "require": "./dist/fosforescent.umd.js",
-      "types": "./dist/types/fosforescent/index.d.ts"
+      "types": "./dist/types/index.d.ts"
     }
   },
-  "types": "./dist/types/fosforescent/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "npx vite build  && npx tsc -p tsconfig.package.json",

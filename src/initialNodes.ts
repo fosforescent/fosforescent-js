@@ -216,5 +216,4 @@ export const defaultContext: FosContextData = {
   nodes: defaultNodes,
   trail: defaultTrail,
   focus: defaultFocus,
-  previousHash: ''
 }

@@ -16,9 +16,8 @@ const App = () => {
 
   const [rootInstruction, rootId] = fosState.trail?.[0] || []
 
-  const rootNode: IFosNode = new FosRootNode(fosState, rootId || "root", rootInstruction || "root")
+  const rootNode: IFosNode = new FosRootNode(fosState, async (newState) => setFosState(newState))
 
-  const trellisNode: TrellisNodeInterface<IFosNode> = rootNode
 
   return (<div>
     <Trellis 
