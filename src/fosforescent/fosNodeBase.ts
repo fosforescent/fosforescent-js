@@ -50,7 +50,7 @@ export interface IFosNode extends INodeMin<IFosNode> {
   setString(newString: string): void
   serializeData(): Promise<FosContextData>
   notify(): Promise<void>
-  handleChildChange(child: IFosNode): Promise<void>
+  handleChange(): Promise<void>
 }
 
 
@@ -64,19 +64,27 @@ export class FosNodeBase implements IFosNode {
   cached: FosContextData | null = null
 
   constructor(context: FosContextData, private parent: FosNodeBase | null, private id: FosNodeId, private type: FosNodeId) {
-    this.data = context.nodes[this.id].data
+    console.log('FOS - constructor', id, type)
+    const nodeData = context.nodes[this.id]
+
+    if (!nodeData){
+      console.log('context', context, 'id', this.id, 'type', this.type, context.nodes)
+      console.trace()
+      process.exit(1)
+      throw new Error(`no node content entry for ${this.id}.  Data is malformed.  Cannot construct node`)
+    }
+    
+    this.data = nodeData.data
     this.init(context)
   }
 
   init(context: FosContextData) {
     const content: FosNodeContent = context.nodes[this.id]
     if (!content){
-      throw new Error(`no node options entry for ${this.id}.  Data is malformed`)
+      console.log('context', context, 'id', this.id, 'type', this.type, context.nodes)
+      throw new Error(`no node content entry for ${this.id}.  Data is malformed.  Cannot init node`)
     }
 
-    if (!content.content){
-      throw new Error(`no content entry for node ${this.id}.  Data is malformed`)
-    }
 
     this.data = content.data
 
@@ -138,7 +146,7 @@ export class FosNodeBase implements IFosNode {
 
   updateNodeData(newData: FosDataContent): void {
     this.data = _.merge(this.data, newData)
-    this.notify()
+    this.handleChange()
   }
   
   getChildren(): IFosNode[] {
@@ -148,7 +156,7 @@ export class FosNodeBase implements IFosNode {
   setChildren(children: IFosNode[]) {
     console.log('FOS- settingChildren', children)
     this.children = children
-    this.notify()
+    this.handleChange()
   }
 
   newId(): FosNodeId {
@@ -161,7 +169,7 @@ export class FosNodeBase implements IFosNode {
     const newContent: FosNodeContent = {
       data: {
         description: {
-          content: 'new task'
+          content: ''
         }
       },
       content: []
@@ -268,26 +276,49 @@ export class FosNodeBase implements IFosNode {
   }
 
   async pullFromPeer(peer: IFosPeer): Promise<void> {
+    console.log('pullFromPeer', this.peers, peer)
     const thisPeer = this.peers.filter((p) => p === peer)
     if (thisPeer.length === 0){
       throw new Error('peer not found')
     }else{
+      const thisCtxData = await this.serializeData()
       const peerCtxData = await peer.pullFromPeer()
       if (!peerCtxData){
         return
       }
-      this.deserializeData(peerCtxData)
+      const mergedData = {
+        ...thisCtxData,
+        nodes: {
+          ...thisCtxData.nodes,
+          ...peerCtxData.nodes
+        }
+      }
+
+      console.log('pullFromPeer --- GET PEER ROOT', peerCtxData)
+      const peerRootNode = new FosNodeBase(mergedData, this.parent, getRootId(mergedData), 'root')
+
+      const oldNodesWithoutConflicts = this.getChildren().filter((child: IFosNode) => peerRootNode.getChildren().find((peerChild: IFosNode) => peerChild.getId() === child.getId()) === undefined)
+      
+
+      this.setChildren([
+        ...oldNodesWithoutConflicts,
+        ...peerRootNode.getChildren()
+      ])
+      console.log('pullFromPeer --- before serialize', mergedData)
+      await this.deserializeData(mergedData)
       return
     }
   }
 
   async pushToPeer(peer: IFosPeer){
     const serializedData = await this.serializeData()
+    // console.log('pushToPeer', serializedData)
     await peer.pushToPeer(serializedData)
     return
   }
 
   async serializeData(): Promise<FosContextData> {
+    // console.log('serializeData', this.getId(), this.data, this.children.map((child: IFosNode) => child.getId()))
     const thisContent = {
       data: this.data,
       content: this.children.map((child: IFosNode) => {
@@ -329,7 +360,21 @@ export class FosNodeBase implements IFosNode {
   } 
 
   async deserializeData(data: FosContextData): Promise<void> {
+
+    console.log('deserializeData')
+    if (!data.nodes[this.getId()] ){
+      console.log('data', data, 'id', this.getId())
+
+      data.nodes[this.getId()] = {
+        data: this.data,
+        content: this.getChildren().map((child: IFosNode) => {
+          return [child.getNodeType(), child.getId()]
+        })
+      }
+    }
+
     this.init(data)
+    return
   }
 
   focusNode(charpos?: number) {
@@ -338,22 +383,27 @@ export class FosNodeBase implements IFosNode {
 
 
 
-  async handleChildChange(child: IFosNode) {
+  async handleChange() {
+    // console.log('handleChange', this.getId())
+    // console.trace();
     // const data = await this.serializeData()
-    for (const peer of this.peers){
-      await this.pushToPeer(peer)
+    const newData = await this.serializeData()
+    const changed = !_.isEqual(newData, this.cached)
+    // console.log('changed', changed, this.parent)
+    if (changed){
+      // console.log("handleChange", this.getId(),  this.peers)
+      for (const peer of this.peers){
+        await this.pushToPeer(peer)
+      }
+      this.cached = newData
+      this.notify()
     }
-    this.notify()
   }
 
   async notify() {
-    const newData = await this.serializeData()
-    const changed = !_.isEqual(newData, this.cached)
-    if (changed){
-      if (this.parent){
-        await this.parent.handleChildChange(this)
-      }
-        this.cached = newData
+    // console.log("Notifying")
+    if (this.parent){
+      await this.parent.handleChange()
     }
   }
 
@@ -362,7 +412,7 @@ export class FosNodeBase implements IFosNode {
   }
 
   setString(newString: string){
-    console.log('FOS setString', newString)
+    // console.log('FOS setString', newString)
     this.setData({
       description: {
         content: newString
@@ -377,7 +427,7 @@ export class FosNodeBase implements IFosNode {
   setPath(selectionPath: SelectionPath) {
 
     throw new Error('not implemented')
-    this.notify()
+    this.handleChange()
     // setData notifies
 
 
@@ -474,12 +524,15 @@ export class FosNodeBase implements IFosNode {
 export class FosRootNode extends FosNodeBase {
 
   constructor(contextData: FosContextData, setContextData: (contextData: FosContextData) => Promise<void>) {
+
+    console.log('FOS - FosRootNode constructor', contextData)
     const id = contextData.trail ? contextData.trail[0][1] : "root"
     const type = contextData.trail ? contextData.trail[0][0] : "root"
     super(contextData, null, id, type)
 
     const setContextWithLog = async (contextData: FosContextData) => {
-      console.log('setContextData', contextData)
+      // console.log('setContextData', contextData)
+      checkDataFormat(contextData)
       await setContextData(contextData)
     }
 
@@ -502,3 +555,48 @@ export class FosRootNode extends FosNodeBase {
 
 
 
+
+
+export const checkDataFormat = (data: FosContextData) => {
+
+  console.log('checking data format', data)
+
+  if ((data as any).data){
+    throw new Error('data.data')
+  }
+
+  if (!(data as any).nodes){
+    console.log('data', data)
+    throw new Error('no data.nodes')
+  }
+
+  const hasRoot = Object.keys(data.nodes).some(key => {
+    const content = data.nodes[key]?.content
+    return content && content.some(([type, id]) => {
+      console.log("key", key, type, id)
+      return type === 'task'
+  })
+  })
+
+  if (!hasRoot){
+    console.log('data', data, data.nodes)
+    throw new Error('no node root')
+  }
+
+}
+
+
+const getRootId = (data: FosContextData) => {
+  if (!data.trail){
+    throw new Error('!data.trail')
+  }
+  const rootElem = data.trail?.[0]
+
+  if (!rootElem){
+
+    throw new Error('!rootElem')
+  }
+
+  return rootElem[1]
+
+}

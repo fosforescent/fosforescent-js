@@ -2,13 +2,13 @@
   "name": "fos-js",
   "private": true,
   "version": "0.0.0",
-  "main": "./dist/fosforescent.umd.js",
+  "main": "./dist/fosforescent.umd.cjs",
   "module": "./dist/fosforescent.js",
   "type": "module",
   "exports": {
     ".": {
       "import": "./dist/fosforescent.js",
-      "require": "./dist/fosforescent.umd.js",
+      "require": "./dist/fosforescent.umd.cjs",
       "types": "./dist/types/index.d.ts"
     }
   },

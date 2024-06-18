@@ -27,7 +27,8 @@ import {
 } from './fosforescent/temp-types'
 
 import {
-  IFosPeer
+  IFosPeer,
+  FosPeer
 } from './fosforescent/fosPeer'
 
 
@@ -40,6 +41,7 @@ export {
   FosRootNode,
   FosOptionNode,
   FosTaskNode,
+  FosPeer,
   defaultContext
 }
 
