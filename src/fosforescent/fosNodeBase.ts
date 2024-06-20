@@ -387,11 +387,12 @@ export class FosNodeBase implements IFosNode {
     // console.log('handleChange', this.getId())
     // console.trace();
     // const data = await this.serializeData()
+    console.log('handleChange - node', this.getId())
     const newData = await this.serializeData()
     const changed = !_.isEqual(newData, this.cached)
     // console.log('changed', changed, this.parent)
     if (changed){
-      // console.log("handleChange", this.getId(),  this.peers)
+      console.log("handleChange --- changed", this.getId(),  this.peers)
       for (const peer of this.peers){
         await this.pushToPeer(peer)
       }
@@ -401,9 +402,13 @@ export class FosNodeBase implements IFosNode {
   }
 
   async notify() {
-    // console.log("Notifying")
+    console.log("Notifying", this.parent?.getId())
     if (this.parent){
-      await this.parent.handleChange()
+      await this.parent.notify()
+    }
+    const thisData = await this.serializeData()
+    for (const peer of this.peers){
+      await peer.pushToPeer(thisData)
     }
   }
 
@@ -539,7 +544,7 @@ export class FosRootNode extends FosNodeBase {
     const peer = new FosPeer({
       pushToRemote: setContextWithLog,
       pullFromRemote: async () => contextData,
-      pushCondition: async () => true,
+      pushCondition: async (data) => !!data,
       pullCondition: async () => false,
       data: contextData,
       mergeData:  (data: FosContextData, newData: FosContextData) => newData

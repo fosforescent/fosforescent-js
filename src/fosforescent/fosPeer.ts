@@ -40,8 +40,10 @@ export class FosPeer implements IFosPeer{
       mergeData
     }
     console.log("CONSTRUCTING PEER", data)
-    if (Object.keys(data as any).length > 100) {
-      throw new Error("Data too large to save to peer")
+    if (data) {
+      if (Object.keys(data as any).length > 100) {
+        throw new Error("Data too large to save to peer")
+      }
     }
     this.data = data
   }
@@ -49,10 +51,11 @@ export class FosPeer implements IFosPeer{
 
   async pushToPeer(data: FosContextData) {
     console.log("Pushing to Peer", data, "thisdata", this.data)
-    if (Object.keys(this.data as any).length > 60) {
-      throw new Error("Data too large to push to peer")
-    }
+
     if (this.data){
+      if (Object.keys(this.data as any).length > 60) {
+        throw new Error("Data too large to push to peer")
+      }  
       this.data = this.values.mergeData(this.data, data)
     } else {
       this.data = data;
