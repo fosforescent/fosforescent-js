@@ -1,4 +1,6 @@
 
+/* eslint-disable */
+
 import { FosContextData, FosNodesData, FosTrail } from "./fosforescent/temp-types";
 
 

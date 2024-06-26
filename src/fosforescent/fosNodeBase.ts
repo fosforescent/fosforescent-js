@@ -1,15 +1,12 @@
 
+/* eslint-disable */
+
 import { FosNodeContent, FosNodeId, FosRoute, SelectionPath, FosContextData, RouteElement, FosDataContent } from './temp-types'
 
 import { FosPeer, IFosPeer } from './fosPeer'
 
 
 import _ from 'lodash'
-
-
-type ChildIndex = number
-type OptionIndex = number
-
 
 
 export interface INodeMin<T extends INodeMin<T>> {
@@ -64,11 +61,13 @@ export class FosNodeBase implements IFosNode {
   cached: FosContextData | null = null
 
   constructor(context: FosContextData, private parent: FosNodeBase | null, private id: FosNodeId, private type: FosNodeId) {
-    console.log('FOS - constructor', id, type)
+    // console.log('FOS - constructor', id, type)
     const nodeData = context.nodes[this.id]
 
     if (!nodeData){
+      // eslint-disable-next-line no-console
       console.log('context', context, 'id', this.id, 'type', this.type, context.nodes)
+      // eslint-disable-next-line no-console
       console.trace()
       process.exit(1)
       throw new Error(`no node content entry for ${this.id}.  Data is malformed.  Cannot construct node`)
@@ -81,6 +80,7 @@ export class FosNodeBase implements IFosNode {
   init(context: FosContextData) {
     const content: FosNodeContent = context.nodes[this.id]
     if (!content){
+      // eslint-disable-next-line no-console
       console.log('context', context, 'id', this.id, 'type', this.type, context.nodes)
       throw new Error(`no node content entry for ${this.id}.  Data is malformed.  Cannot init node`)
     }
@@ -154,7 +154,7 @@ export class FosNodeBase implements IFosNode {
   }
 
   setChildren(children: IFosNode[]) {
-    console.log('FOS- settingChildren', children)
+    // console.log('FOS- settingChildren', children)
     this.children = children
     this.handleChange()
   }
@@ -165,7 +165,7 @@ export class FosNodeBase implements IFosNode {
 
   // newChild(type: FosNodeId): IFosNode {
   newChild(): IFosNode {
-    console.log('FOS - newChild')
+    // console.log('FOS - newChild')
     const newContent: FosNodeContent = {
       data: {
         description: {
@@ -276,7 +276,7 @@ export class FosNodeBase implements IFosNode {
   }
 
   async pullFromPeer(peer: IFosPeer): Promise<void> {
-    console.log('pullFromPeer', this.peers, peer)
+    // console.log('pullFromPeer', this.peers, peer)
     const thisPeer = this.peers.filter((p) => p === peer)
     if (thisPeer.length === 0){
       throw new Error('peer not found')
@@ -294,7 +294,7 @@ export class FosNodeBase implements IFosNode {
         }
       }
 
-      console.log('pullFromPeer --- GET PEER ROOT', peerCtxData)
+      // console.log('pullFromPeer --- GET PEER ROOT', peerCtxData)
       const peerRootNode = new FosNodeBase(mergedData, this.parent, getRootId(mergedData), 'root')
 
       const oldNodesWithoutConflicts = this.getChildren().filter((child: IFosNode) => peerRootNode.getChildren().find((peerChild: IFosNode) => peerChild.getId() === child.getId()) === undefined)
@@ -304,7 +304,7 @@ export class FosNodeBase implements IFosNode {
         ...oldNodesWithoutConflicts,
         ...peerRootNode.getChildren()
       ])
-      console.log('pullFromPeer --- before serialize', mergedData)
+      // console.log('pullFromPeer --- before serialize', mergedData)
       await this.deserializeData(mergedData)
       return
     }
@@ -361,9 +361,9 @@ export class FosNodeBase implements IFosNode {
 
   async deserializeData(data: FosContextData): Promise<void> {
 
-    console.log('deserializeData')
+    // console.log('deserializeData')
     if (!data.nodes[this.getId()] ){
-      console.log('data', data, 'id', this.getId())
+      // console.log('data', data, 'id', this.getId())
 
       data.nodes[this.getId()] = {
         data: this.data,
@@ -387,12 +387,12 @@ export class FosNodeBase implements IFosNode {
     // console.log('handleChange', this.getId())
     // console.trace();
     // const data = await this.serializeData()
-    console.log('handleChange - node', this.getId())
+    // console.log('handleChange - node', this.getId())
     const newData = await this.serializeData()
     const changed = !_.isEqual(newData, this.cached)
     // console.log('changed', changed, this.parent)
     if (changed){
-      console.log("handleChange --- changed", this.getId(),  this.peers)
+      // console.log("handleChange --- changed", this.getId(),  this.peers)
       for (const peer of this.peers){
         await this.pushToPeer(peer)
       }
@@ -402,7 +402,7 @@ export class FosNodeBase implements IFosNode {
   }
 
   async notify() {
-    console.log("Notifying", this.parent?.getId())
+    // console.log("Notifying", this.parent?.getId())
     if (this.parent){
       await this.parent.notify()
     }
@@ -530,7 +530,7 @@ export class FosRootNode extends FosNodeBase {
 
   constructor(contextData: FosContextData, setContextData: (contextData: FosContextData) => Promise<void>) {
 
-    console.log('FOS - FosRootNode constructor', contextData)
+    // console.log('FOS - FosRootNode constructor', contextData)
     const id = contextData.trail ? contextData.trail[0][1] : "root"
     const type = contextData.trail ? contextData.trail[0][0] : "root"
     super(contextData, null, id, type)
@@ -564,27 +564,27 @@ export class FosRootNode extends FosNodeBase {
 
 export const checkDataFormat = (data: FosContextData) => {
 
-  console.log('checking data format', data)
+  // console.log('checking data format', data)
 
   if ((data as any).data){
     throw new Error('data.data')
   }
 
   if (!(data as any).nodes){
-    console.log('data', data)
+    // console.log('data', data)
     throw new Error('no data.nodes')
   }
 
   const hasRoot = Object.keys(data.nodes).some(key => {
     const content = data.nodes[key]?.content
     return content && content.some(([type, id]) => {
-      console.log("key", key, type, id)
+      // console.log("key", key, type, id)
       return type === 'task'
   })
   })
 
   if (!hasRoot){
-    console.log('data', data, data.nodes)
+    // console.log('data', data, data.nodes)
     throw new Error('no node root')
   }
 

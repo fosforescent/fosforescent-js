@@ -1,3 +1,4 @@
+/* eslint-disable */
 
 import { FosNodeContent, FosContextData, FosRoute, FosTrail, FosNodesData, FosPath, SelectionPath,  FosNodeId } from './temp-types'
 import { FosPeer, IFosPeer } from './fosPeer'

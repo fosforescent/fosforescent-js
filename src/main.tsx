@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Trellis, TrellisNodeInterface } from '@syctech/react-trellis'
+import { Trellis } from '@syctech/react-trellis'
 import { IFosNode } from './fosforescent/temp-types'
 import { defaultContext } from './initialNodes'
 import { FosRootNode } from './fosforescent/fosNodeBase'
@@ -14,7 +14,7 @@ const App = () => {
 
   const [fosState, setFosState] = React.useState(defaultContext)
 
-  const [rootInstruction, rootId] = fosState.trail?.[0] || []
+  // const [rootInstruction, rootId] = fosState.trail?.[0] || []
 
   const rootNode: IFosNode = new FosRootNode(fosState, async (newState) => setFosState(newState))
 

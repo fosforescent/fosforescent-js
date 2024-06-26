@@ -1,6 +1,7 @@
 
-import { FosRoute } from './temp-types'
+// import { FosRoute } from './temp-types'
 
+export {}
 
 // export class FosOptionNode extends FosNode{
 

@@ -1,4 +1,6 @@
-import { FosNodeBase, FosRootNode } from "./fosNodeBase";
+/* eslint-disable */
+
+import { FosNodeBase } from "./fosNodeBase";
 import { FosContextData } from "./temp-types";
 
 export interface IFosPeer {
@@ -39,9 +41,9 @@ export class FosPeer implements IFosPeer{
       pullCondition,
       mergeData
     }
-    console.log("CONSTRUCTING PEER", data)
+    // console.log("CONSTRUCTING PEER", data)
     if (data) {
-      if (Object.keys(data as any).length > 100) {
+      if (Object.keys(data as FosContextData).length > 100) {
         throw new Error("Data too large to save to peer")
       }
     }
@@ -50,10 +52,10 @@ export class FosPeer implements IFosPeer{
 
 
   async pushToPeer(data: FosContextData) {
-    console.log("Pushing to Peer", data, "thisdata", this.data)
+    // console.log("Pushing to Peer", data, "thisdata", this.data)
 
     if (this.data){
-      if (Object.keys(this.data as any).length > 60) {
+      if (Object.keys(this.data as FosContextData).length > 60) {
         throw new Error("Data too large to push to peer")
       }  
       this.data = this.values.mergeData(this.data, data)
@@ -66,15 +68,15 @@ export class FosPeer implements IFosPeer{
   }
 
   async pullFromPeer() {
-    console.log("Pulling from Peer", "thisdata", this.data)
+    // console.log("Pulling from Peer", "thisdata", this.data)
     const doPull = this.data ? await this.values.pullCondition(this.data) : true
     if (doPull) {
       const data = await this.values.pullFromRemote();
-      console.log("Pulled from Peer", data, "thisdata", this.data)
+      // console.log("Pulled from Peer", data, "thisdata", this.data)
       this.data = data;
       return data;
     }
-    console.log("Didn't pull thisdata", this.data)
+    // console.log("Didn't pull thisdata", this.data)
   }
 
 

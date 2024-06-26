@@ -1,7 +1,8 @@
 // import { nodeReduce } from './fosUtil'; // adjust the path as necessary
 
 
-import { FosNodeContent, FosContextData } from './temp-types';
+// import { FosNodeContent, FosContextData } from './temp-types';
+
 // Sample data
 // const contextData: FosContextData = {
 //   nodes: {
