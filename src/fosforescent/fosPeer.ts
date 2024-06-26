@@ -1,3 +1,6 @@
+/* eslint-disable */
+
+import { FosNodeBase } from "./fosNodeBase";
 import { FosContextData } from "./temp-types";
 
 export interface IFosPeer {
@@ -38,13 +41,24 @@ export class FosPeer implements IFosPeer{
       pullCondition,
       mergeData
     }
+    // console.log("CONSTRUCTING PEER", data)
+    if (data) {
+      if (Object.keys(data as FosContextData).length > 100) {
+        throw new Error("Data too large to save to peer")
+      }
+    }
     this.data = data
   }
 
 
   async pushToPeer(data: FosContextData) {
+    // console.log("Pushing to Peer", data, "thisdata", this.data)
+
     if (this.data){
-      this.data = this.values.mergeData(data, this.data)
+      if (Object.keys(this.data as FosContextData).length > 60) {
+        throw new Error("Data too large to push to peer")
+      }  
+      this.data = this.values.mergeData(this.data, data)
     } else {
       this.data = data;
     }
@@ -54,11 +68,15 @@ export class FosPeer implements IFosPeer{
   }
 
   async pullFromPeer() {
-    if (this.data ? await this.values.pullCondition(this.data) : true) {
+    // console.log("Pulling from Peer", "thisdata", this.data)
+    const doPull = this.data ? await this.values.pullCondition(this.data) : true
+    if (doPull) {
       const data = await this.values.pullFromRemote();
+      // console.log("Pulled from Peer", data, "thisdata", this.data)
       this.data = data;
       return data;
     }
+    // console.log("Didn't pull thisdata", this.data)
   }
 
 
@@ -79,6 +97,22 @@ export class FosPeer implements IFosPeer{
       mergeData
     })
     return newPeer
+  }
+
+  getRootNode(){
+
+    if (!this.data) {
+      throw new Error("No data found in peer")
+    }
+
+    const rootElem = this.data?.trail?.[0]
+    if (!rootElem) {
+      throw new Error("No root element found in peer")
+    }
+
+
+    const peerRoot = new FosNodeBase(this.data, null, rootElem[1], rootElem[0])
+    return peerRoot
   }
 
 }

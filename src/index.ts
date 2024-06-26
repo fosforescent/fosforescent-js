@@ -1,34 +1,61 @@
-import { FosNode } from './fosNode';
-import { FosContext } from './fosContext';
-import { FosPeer, IFosPeer } from './fosPeer';
+import {
+  FosNodeBase,
+  IFosNode,
+  FosRootNode,
 
-import { 
-  FosContextData, 
-  FosNodeData, 
-  FosNodesData, 
-  FosRoute,
-  FosNodeContent,
-  FosPath,
-  FosTrail,
-  SelectionPath
- }  from './temp-types';
+} from './fosforescent/fosNodeBase'
 
+import {
+  FosOptionNode
+} from './fosforescent/fosOptionNode'
 
-export type {
+import {
+  FosTaskNode
+} from './fosforescent/fosTaskNode'
+
+import {
   FosContextData,
-  FosNodeContent,
-  FosNodeData,
   FosRoute,
-  FosPath,
   FosTrail,
   FosNodesData,
-  SelectionPath, 
-  IFosPeer
-}
+  FosPath,
+  SelectionPath,
+  FosNodeId,
+  FosDataContent,
+  FosNodeContent
 
+} from './fosforescent/temp-types'
+
+import {
+  IFosPeer,
+  FosPeer
+} from './fosforescent/fosPeer'
+
+
+import {
+  defaultContext
+} from './initialNodes'
 
 export {
-  FosNode,
-  FosContext,
-  FosPeer
+  FosNodeBase,
+  FosRootNode,
+  FosOptionNode,
+  FosTaskNode,
+  FosPeer,
+  defaultContext
+}
+
+export type {
+  IFosPeer,
+  IFosNode,
+  FosContextData,
+  FosRoute,
+  FosTrail,
+  FosNodesData,
+  FosPath,
+  SelectionPath,
+  FosNodeId,
+  FosDataContent,
+  FosNodeContent
+
 }

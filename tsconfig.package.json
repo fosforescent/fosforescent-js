@@ -11,6 +11,14 @@
     "esModuleInterop": true,    // Allows default imports from modules with no default export
     "skipLibCheck": true,        // Skip type checking of declaration files (*.d.ts)
     "moduleResolution": "node",
+    "sourceMap": true,
+
+      /* Linting */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+
+
     "baseUrl": ".",
     "paths": {
       "@/*": [
