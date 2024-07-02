@@ -1,6 +1,6 @@
 {
   "name": "fos-js",
-  "version": "0.0.1",
+  "version": "1.0.3",
   "main": "./dist/fosforescent.umd.cjs",
   "module": "./dist/fosforescent.js",
   "type": "module",
