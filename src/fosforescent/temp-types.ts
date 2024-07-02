@@ -66,7 +66,7 @@ export type FosNodeContent = {
 
 
 export type SelectionPath = {
-  [key: number]: SelectionPath[]
+  [key: string]: SelectionPath
 }
 
 export type NodeAddress = string

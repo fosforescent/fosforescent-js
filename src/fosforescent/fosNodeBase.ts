@@ -15,7 +15,7 @@ export interface INodeMin<T extends INodeMin<T>> {
   setChildren: (children: T[]) => void
   getChildren: () => T[]
   getId: () => string
-  newChild: () => T
+  newChild: (nodeType?: string | null) => T
   getString: () => string
   setString: (string: string) => void
   getParent: () => T | null
@@ -42,10 +42,10 @@ export interface IFosNode extends INodeMin<IFosNode> {
   focusNode(charpos?: number): void
   setChildren(children: IFosNode[]): void
   // newChild(type: FosNodeId): IFosNode
-  newChild(): IFosNode
+  newChild(nodeType?: string | null): IFosNode
   getString(): string
   setString(newString: string): void
-  serializeData(): Promise<FosContextData>
+  serializeData(): FosContextData
   notify(): Promise<void>
   handleChange(): Promise<void>
 }
@@ -155,7 +155,15 @@ export class FosNodeBase implements IFosNode {
 
   setChildren(children: IFosNode[]) {
     // console.log('FOS- settingChildren', children)
-    this.children = children
+    let newChildren = []
+    for (const child of children){
+      const serializedData = child.serializeData()
+      const childData = child.getData()
+      const newChild = new FosNodeBase(serializedData, this, child.getId(), child.getNodeType())
+      newChild.setData(childData)
+      newChildren.push(newChild)
+    }
+    this.children = newChildren
     this.handleChange()
   }
 
@@ -164,33 +172,58 @@ export class FosNodeBase implements IFosNode {
   }
 
   // newChild(type: FosNodeId): IFosNode {
-  newChild(): IFosNode {
-    // console.log('FOS - newChild')
-    const newContent: FosNodeContent = {
-      data: {
-        description: {
-          content: ''
-        }
-      },
-      content: []
-    }
-    const newId = this.newId();
-    const newNode = new FosNodeBase({
-      nodes: {
-        [newId]: newContent
-      },
-      trail: [],
-      focus: {
-        route: [],
-        char: 0
+  newChild(childType: string | null = null): IFosNode {
+    console.log('FOS - newChild')
+    if (!childType || childType === 'task'){
+      const newContent: FosNodeContent = {
+        data: {
+          description: {
+            content: ''
+          }
+        },
+        content: []
       }
-    }, this, newId, "task")
-
-
-    this.setChildren([...this.children, newNode])
-    
-    
-    return newNode
+      const newId = this.newId();
+      const newNode = new FosNodeBase({
+        nodes: {
+          [newId]: newContent
+        },
+        trail: [],
+        focus: {
+          route: [],
+          char: 0
+        }
+      }, this, newId, "task")
+      this.setChildren([...this.children, newNode])    
+      return newNode
+    } else if (childType === 'option'){
+      const newContent: FosNodeContent = {
+        data: {
+          description: {
+            content: ''
+          },
+          option: {
+            selectedIndex: 0
+          }
+        },
+        content: []
+      }
+      const newId = this.newId();
+      const newNode = new FosNodeBase({
+        nodes: {
+          [newId]: newContent
+        },
+        trail: [],
+        focus: {
+          route: [],
+          char: 0
+        }
+      }, this, newId, "option")
+      this.setChildren([...this.children, newNode])
+      return newNode
+    }else{
+      throw new Error(`unknown child type ${childType}`)
+    }
   }
 
   getChild([type, id]: [string, string]): IFosNode {
@@ -317,7 +350,7 @@ export class FosNodeBase implements IFosNode {
     return
   }
 
-  async serializeData(): Promise<FosContextData> {
+  serializeData(): FosContextData {
     // console.log('serializeData', this.getId(), this.data, this.children.map((child: IFosNode) => child.getId()))
     const thisContent = {
       data: this.data,
@@ -325,9 +358,9 @@ export class FosNodeBase implements IFosNode {
         return [child.getNodeType(), child.getId()]
       })
     }
-    const childrenDatas = await Promise.all(this.children.map((child: IFosNode) => {
+    const childrenDatas = this.children.map((child: IFosNode) => {
       return child.serializeData()
-    }))
+    })
 
     const zoomedChild = childrenDatas.find((childData) => { 
       return childData.trail && childData.trail.length > 0
@@ -388,7 +421,7 @@ export class FosNodeBase implements IFosNode {
     // console.trace();
     // const data = await this.serializeData()
     // console.log('handleChange - node', this.getId())
-    const newData = await this.serializeData()
+    const newData = this.serializeData()
     const changed = !_.isEqual(newData, this.cached)
     // console.log('changed', changed, this.parent)
     if (changed){
@@ -406,7 +439,7 @@ export class FosNodeBase implements IFosNode {
     if (this.parent){
       await this.parent.notify()
     }
-    const thisData = await this.serializeData()
+    const thisData = this.serializeData()
     for (const peer of this.peers){
       await peer.pushToPeer(thisData)
     }
