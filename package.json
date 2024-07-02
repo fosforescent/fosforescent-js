@@ -1,5 +1,5 @@
 {
-  "name": "fos-js",
+  "name": "@fosforescent/fosforescent-js",
   "version": "1.0.3",
   "main": "./dist/fosforescent.umd.cjs",
   "module": "./dist/fosforescent.js",
