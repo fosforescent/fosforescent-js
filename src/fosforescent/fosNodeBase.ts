@@ -48,6 +48,8 @@ export interface IFosNode extends INodeMin<IFosNode> {
   serializeData(): FosContextData
   notify(): Promise<void>
   handleChange(): Promise<void>
+  setPath(path: SelectionPath): void
+  setParent(parent: IFosNode): void
 }
 
 
@@ -150,20 +152,23 @@ export class FosNodeBase implements IFosNode {
   }
   
   getChildren(): IFosNode[] {
+    // let newChildren = []
+    // for (const child of this.children){
+    //   const serializedData = child.serializeData()
+    //   const childData = child.getData()
+    //   const newChild = new FosNodeBase(serializedData, this, child.getId(), child.getNodeType())
+    //   newChild.setData(childData)
+    //   newChildren.push(newChild)
+    // }
     return this.children
   }
 
   setChildren(children: IFosNode[]) {
-    // console.log('FOS- settingChildren', children)
-    let newChildren = []
-    for (const child of children){
-      const serializedData = child.serializeData()
-      const childData = child.getData()
-      const newChild = new FosNodeBase(serializedData, this, child.getId(), child.getNodeType())
-      newChild.setData(childData)
-      newChildren.push(newChild)
-    }
-    this.children = newChildren
+    children.forEach((child) => {
+      child.setParent(this)
+    })
+    this.children = children
+    console.log('FOS- settingChildren ++', this.children)
     this.handleChange()
   }
 
@@ -460,96 +465,47 @@ export class FosNodeBase implements IFosNode {
     
   }
 
-
+  setParent(parent: FosNodeBase){
+    this.parent = parent
+  }
 
   setPath(selectionPath: SelectionPath) {
-
-    throw new Error('not implemented')
-    this.handleChange()
-    // setData notifies
-
-
-
-    // const newContext = Object.keys(selectionPath).reduce((accOuter, key, index) => {
-
-    //   const thisNode = accOuter.getNode(this.getRoute())
-    //   const nodeChildren = thisNode.getChildren()
-
-    //   if (nodeChildren.length === 0){
-    //     if (!selectionPath[key as unknown as number]){
-    //       console.log('path is not valid - key not found', selectionPath, key)
-    //       throw new Error('path is not valid - key not found')
-    //     }
-    //     if (Object.keys(selectionPath[key as unknown as number] || {}).length !== 0){
-    //       console.log('path is not valid - key not empty at leaf', selectionPath, key)
-    //       throw new Error('path is not valid')
-    //     }
-
-
-    //     const activeOptionIndex = parseInt(key)
-
-    //     const content = thisNode.getNodeContent()
-
-    //     const newContext = thisNode.setNodeContent({
-    //       ...content,
-    //       data: {
-    //         ...content.data,
-    //         option: {
-    //           ...(content.data.option || {}),
-    //           selectedIndex: activeOptionIndex
-    //         }
-    //       }
-    //     })
-    //     return newContext
-
-    //   } else {
-    //     const selections = selectionPath[key as unknown as number]
-
-    //     if (!selections){
-    //       console.log('path is not valid - key not found', selectionPath, key)
-    //       throw new Error('path is not valid - key not found')
-    //     }
-    //     if (selections.length !== nodeChildren.length){
-    //       console.log('path is not valid - selections length different from children length', selections.length, nodeChildren.length, selectionPath, key, this.getNodeId())
-    //       throw new Error('path is not valid')
-    //     }
-
-    //     const updatedContextWithChildSelections = nodeChildren.reduce((accInner: FosContext, child: FosNode, i: number) => {
-
-    //       const childNode = accInner.getNode(child.getRoute())
-    //       const childSelection = selections[i]
-
-    //       if (!childSelection){
-    //         console.log('path is not valid - selection not found for child', selectionPath, key)
-    //         throw new Error('path is not valid - selection not found for child')
-    //       }
-
-    //       const selectionKeys = Object.keys(childSelection)
-
-    //       if (selectionKeys.length !== 1){
-    //         console.log('path is not valid - selection keys length not 1', selectionKeys, selectionPath, key)
-    //         throw new Error('path is not valid')
-    //       }
-
-    //       const newChildContext =  childNode.setPath(childSelection)
-    //       return newChildContext
-    //     }, accOuter)
-
-    //     const nodeFromUpdatedContext = updatedContextWithChildSelections.getNode(thisNode.getRoute())
-
-    //     const updatedContextWithOptionSelection = nodeFromUpdatedContext.setNodeData({
-    //       ...nodeFromUpdatedContext.getNodeData(),
-    //       selectedOption: parseInt(key)
-    //     })
-
-    //     return updatedContextWithOptionSelection
-
-    //   }
+    const thisNodeType = this.getNodeType()
+    if (thisNodeType === "task"){
+      const thisChildren = this.getChildren()
+      const keys = Object.keys(selectionPath)
+      if (!_.isEqual(keys, thisChildren.map((child: IFosNode) => child.getId()))){
+        throw new Error('path is not valid - selection keys length not equal to children length for task node')
+      }
       
+      thisChildren.forEach((child, index) => {
+        const key = child.getId()
+        const childSelection = selectionPath[key]
+        child.setPath(childSelection)
+      })
 
-    // }, this.context)
+      
+    } else if (thisNodeType === "option"){
+      const keys = Object.keys(selectionPath)
+      if (keys.length !== 1){
+        throw new Error('path is not valid - selection keys length not 1 for option node')
+      }
+      const thisData = this.getData()
+      const selectedIndex = this.getChildren().findIndex((child: IFosNode) => child.getId() === keys[0])
+      const newData = {
+        ...thisData,
+        option: {
+          selectedIndex
+        }
+      }
+      this.setData(newData)
+      const selectedChild = this.getChildren()[selectedIndex]
+      selectedChild.setPath(selectionPath[keys[0]])
 
-    // return newContext
+    } else {
+      throw new Error('setPath should not be called on a node of type ' + thisNodeType)
+    }
+
   }
 
 }
