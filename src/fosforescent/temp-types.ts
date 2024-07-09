@@ -47,6 +47,7 @@ export type FosDataContent = {
   reactClient?:{
     collapsed: boolean;
   }
+  updatedTime?: number
 }
 
 
