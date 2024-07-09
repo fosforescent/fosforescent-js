@@ -287,7 +287,7 @@ export class FosNodeBase implements IFosNode {
 
 
   setData(data: Partial<FosNodeContent["data"]>) {
-    console.log('fos-js setData', this.updateNodeData)
+    // console.log('fos-js setData', this.updateNodeData)
     this.updateNodeData({
       ...this.data,
       ...data

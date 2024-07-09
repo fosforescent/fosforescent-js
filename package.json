@@ -1,6 +1,6 @@
 {
   "name": "@fosforescent/fosforescent-js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "./dist/fosforescent.umd.cjs",
   "module": "./dist/fosforescent.js",
   "type": "module",
