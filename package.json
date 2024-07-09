@@ -23,7 +23,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@syctech/react-trellis": "^0.1.0",
+    "@syctech/react-trellis": "^0.1.2",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.4",
     "@types/node": "^20.14.2",
