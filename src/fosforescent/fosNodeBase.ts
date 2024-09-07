@@ -19,7 +19,7 @@ export interface INodeMin<T extends INodeMin<T>> {
   getString: () => string
   setString: (string: string) => void
   getParent: () => T | null
-
+  
 }
 
 
@@ -50,6 +50,10 @@ export interface IFosNode extends INodeMin<IFosNode> {
   handleChange(): Promise<void>
   setPath(path: SelectionPath): void
   setParent(parent: IFosNode): void
+  serializeData(): FosContextData
+  deserializeData(data: FosContextData): Promise<void>
+  serialize: () => string
+  deserialize: (data: string) => IFosNode
 }
 
 
@@ -75,7 +79,12 @@ export class FosNodeBase implements IFosNode {
       process?.exit(1)
     }
     
-    this.data = nodeData.data
+    this.data = {
+      updated: {
+        time: Date.now()
+      },
+      ...nodeData.data
+    }
     this.init(context)
   }
 
@@ -164,11 +173,13 @@ export class FosNodeBase implements IFosNode {
   }
 
   setChildren(children: IFosNode[]) {
+
     children.forEach((child) => {
       child.setParent(this)
     })
-    this.children = children
-    // console.log('FOS- settingChildren ++', this.children)
+    console.log('FOS- settingChildren', children)
+    this.children = [...children]
+    console.log('FOS- settingChildren ++', this.children)
     this.handleChange()
   }
 
@@ -178,7 +189,7 @@ export class FosNodeBase implements IFosNode {
 
   // newChild(type: FosNodeId): IFosNode {
   newChild(childType: string | null = null): IFosNode {
-    // console.log('FOS - newChild')
+    console.log('FOS - newChild', this.serialize())
     if (!childType || childType === 'task'){
       const newContent: FosNodeContent = {
         data: {
@@ -351,12 +362,13 @@ export class FosNodeBase implements IFosNode {
 
   async pushToPeer(peer: IFosPeer){
     const serializedData = await this.serializeData()
-    // console.log('pushToPeer', serializedData)
+    console.log('pushToPeer', serializedData)
     await peer.pushToPeer(serializedData)
     return
   }
 
   serializeData(): FosContextData {
+    console.log('serializeData - a')
     // console.log('serializeData', this.getId(), this.data, this.children.map((child: IFosNode) => child.getId()))
     const thisContent = {
       data: this.data,
@@ -364,19 +376,23 @@ export class FosNodeBase implements IFosNode {
         return [child.getNodeType(), child.getId()]
       })
     }
+    console.log('serializeData - b')
     const childrenDatas = this.children.map((child: IFosNode) => {
       return child.serializeData()
     })
 
+    console.log('serializeData - c')
     const zoomedChild = childrenDatas.find((childData) => { 
       return childData.trail && childData.trail.length > 0
     })
     
+    console.log('serializeData - d')
     const focusedChild = childrenDatas.find((childData) => {
       return childData.focus && childData.focus.route.length > 0
     })
 
     const thisTrail = this.zoomedIn ? [this.getRouteElem(), ...(zoomedChild?.trail || [])] : null
+    console.log('serializeData - e')
 
     const thisFocus = this.focused ? { 
         route: [this.getRouteElem(), ...(focusedChild?.focus?.route || [])],
@@ -423,31 +439,40 @@ export class FosNodeBase implements IFosNode {
 
 
   async handleChange() {
-    // console.log('handleChange', this.getId())
+    console.log('handleChange - A', this.getId())
     // console.trace();
-    // const data = await this.serializeData()
-    // console.log('handleChange - node', this.getId())
     const newData = this.serializeData()
+    console.log('handleChange - B', newData, this, this.cached)
+    this.data.updated = {
+      ...(this.data.updated  || {}),
+      time: Date.now()
+    }
     const changed = !_.isEqual(newData, this.cached)
-    // console.log('changed', changed, this.parent, newData, this.cached)
+    console.log('handleChange -- changed', changed, this.parent, newData, this.cached)
+    if (Object.keys(newData.nodes).length < (Object.keys(this.cached?.nodes || {}).length || 0) ){
+      console.log('handleChange -- nodes length', Object.keys(newData.nodes).length, Object.keys(this.serializeData().nodes).length)
+      throw new Error('nodes length')
+
+    }
     if (changed){
       // console.log("handleChange --- changed", this.getId(),  this.peers)
       for (const peer of this.peers){
         await this.pushToPeer(peer)
       }
       this.cached = JSON.parse(JSON.stringify(newData))
-      this.notify()
+      await this.notify()
     }
   }
 
   async notify() {
-    // console.log("Notifying", this.parent?.getId())
-    if (this.parent){
-      await this.parent.notify()
-    }
+
+    console.log("Notifying", this.parent?.getId())
     const thisData = this.serializeData()
     for (const peer of this.peers){
       await peer.pushToPeer(thisData)
+    }
+    if (this.parent){
+      await this.parent.notify()
     }
   }
 
@@ -507,6 +532,17 @@ export class FosNodeBase implements IFosNode {
       throw new Error('setPath should not be called on a node of type ' + thisNodeType)
     }
 
+  }
+
+  serialize(): string {
+    return JSON.stringify(this.serializeData())
+  }
+
+  deserialize(data: string): FosNodeBase {
+    const parsedData = JSON.parse(data)
+    checkDataFormat(parsedData)
+    this.deserializeData(parsedData)
+    return this
   }
 
 }

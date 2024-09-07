@@ -40,6 +40,29 @@ export type FosDataContent = {
     content: string;
   }
 
+  comment?: {
+    content: string;
+    author: string;
+    time: number;
+    votes: {
+      [key: string]: string;
+    }
+  }
+  peers?: {
+    [key: string]: {
+      connectionInfo: {
+        type: "serverHttp";
+        address: string;
+      } | {
+        type: "serverWs";
+        address: string;
+      } | {
+        type: "webRtc";
+        offerSdpJson: string;
+      },
+
+    }
+  }
   todo?: {
     completed: boolean;
     notes: string;
@@ -47,7 +70,9 @@ export type FosDataContent = {
   reactClient?:{
     collapsed: boolean;
   }
-  updatedTime?: number
+  updated?: {
+    time: number;
+  }
 }
 
 
