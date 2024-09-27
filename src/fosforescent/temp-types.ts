@@ -50,6 +50,7 @@ export type FosDataContent = {
   }
   peers?: {
     [key: string]: {
+      displayName: string;
       connectionInfo: {
         type: "serverHttp";
         address: string;
@@ -59,13 +60,14 @@ export type FosDataContent = {
       } | {
         type: "webRtc";
         offerSdpJson: string;
-      },
-
+      }[],
+      capabilities: string[];
     }
   }
   todo?: {
     completed: boolean;
     notes: string;
+    workflow: string | null;
   }
   reactClient?:{
     collapsed: boolean;

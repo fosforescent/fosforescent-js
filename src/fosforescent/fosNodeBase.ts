@@ -190,7 +190,7 @@ export class FosNodeBase implements IFosNode {
   // newChild(type: FosNodeId): IFosNode {
   newChild(childType: string | null = null): IFosNode {
     console.log('FOS - newChild', this.serialize())
-    if (!childType || childType === 'task'){
+    if (!childType || childType === 'workflow'){
       const newContent: FosNodeContent = {
         data: {
           description: {
@@ -209,7 +209,7 @@ export class FosNodeBase implements IFosNode {
           route: [],
           char: 0
         }
-      }, this, newId, "task")
+      }, this, newId, "workflow")
       this.setChildren([...this.children, newNode])    
       return newNode
     } else if (childType === 'option'){
@@ -235,6 +235,33 @@ export class FosNodeBase implements IFosNode {
           char: 0
         }
       }, this, newId, "option")
+      this.setChildren([...this.children, newNode])
+      return newNode
+    } else if (childType === 'todo'){
+      const newContent: FosNodeContent = {
+        data: {
+          description: {
+            content: ''
+          },
+          todo: {
+            workflow: null,
+            completed: false,
+            notes: ''
+          }
+        },
+        content: []
+      }
+      const newId = this.newId();
+      const newNode = new FosNodeBase({
+        nodes: {
+          [newId]: newContent
+        },
+        trail: [],
+        focus: {
+          route: [],
+          char: 0
+        }
+      }, this, newId, "todo")
       this.setChildren([...this.children, newNode])
       return newNode
     }else{
@@ -368,7 +395,7 @@ export class FosNodeBase implements IFosNode {
   }
 
   serializeData(): FosContextData {
-    console.log('serializeData - a')
+    // console.log('serializeData - a')
     // console.log('serializeData', this.getId(), this.data, this.children.map((child: IFosNode) => child.getId()))
     const thisContent = {
       data: this.data,
@@ -376,23 +403,23 @@ export class FosNodeBase implements IFosNode {
         return [child.getNodeType(), child.getId()]
       })
     }
-    console.log('serializeData - b')
+    // console.log('serializeData - b')
     const childrenDatas = this.children.map((child: IFosNode) => {
       return child.serializeData()
     })
 
-    console.log('serializeData - c')
+    // console.log('serializeData - c')
     const zoomedChild = childrenDatas.find((childData) => { 
       return childData.trail && childData.trail.length > 0
     })
     
-    console.log('serializeData - d')
+    // console.log('serializeData - d')
     const focusedChild = childrenDatas.find((childData) => {
       return childData.focus && childData.focus.route.length > 0
     })
 
     const thisTrail = this.zoomedIn ? [this.getRouteElem(), ...(zoomedChild?.trail || [])] : null
-    console.log('serializeData - e')
+    // console.log('serializeData - e')
 
     const thisFocus = this.focused ? { 
         route: [this.getRouteElem(), ...(focusedChild?.focus?.route || [])],
@@ -497,7 +524,7 @@ export class FosNodeBase implements IFosNode {
 
   setPath(selectionPath: SelectionPath) {
     const thisNodeType = this.getNodeType()
-    if (thisNodeType === "task"){
+    if (thisNodeType === "workflow"){
       const thisChildren = this.getChildren()
       const keys = Object.keys(selectionPath)
       if (!_.isEqual(keys, thisChildren.map((child: IFosNode) => child.getId()))){
@@ -556,7 +583,7 @@ export class FosRootNode extends FosNodeBase {
 
   constructor(contextData: FosContextData, setContextData: (contextData: FosContextData) => Promise<void> = async () => {}) {
 
-    // console.log('FOS - FosRootNode constructor', contextData)
+    console.log('FOS - FosRootNode constructor', contextData)
     const id = contextData.trail ? contextData.trail[0][1] : "root"
     const type = contextData.trail ? contextData.trail[0][0] : "root"
     super(contextData, null, id, type)
@@ -602,11 +629,12 @@ export const checkDataFormat = (data: FosContextData) => {
   }
 
   const hasRoot = Object.keys(data.nodes).some(key => {
-    const content = data.nodes[key]?.content
-    return content && content.some(([type, id]) => {
-      // console.log("key", key, type, id)
-      return type === 'task'
-  })
+    const content = data.nodes[key]?.content.length > 0
+    // return content && content.some(([type, id]) => {
+    //   // console.log("key", key, type, id)
+    //   return type === 'todo'
+    // })
+    return content
   })
 
   if (!hasRoot){
